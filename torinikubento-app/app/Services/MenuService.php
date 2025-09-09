@@ -80,6 +80,13 @@ class MenuService
                     'permission' => 'manage_users'
                 ],
                 [
+                    'label' => 'Kelola Role',
+                    'route' => 'roles.index',
+                    'icon' => 'fas fa-user-tag',
+                    'active_pattern' => 'roles*',
+                    'permission' => 'manage_roles'
+                ],
+                [
                     'label' => 'Monitoring Live',
                     'route' => 'monitoring.live',
                     'icon' => 'fas fa-eye',
@@ -163,6 +170,13 @@ class MenuService
                     'icon' => 'fas fa-user-cog',
                     'active_pattern' => 'manage-accounts*',
                     'permission' => 'manage_users'
+                ],
+                [
+                    'label' => 'Kelola Role',
+                    'route' => 'roles.index',
+                    'icon' => 'fas fa-user-tag',
+                    'active_pattern' => 'roles*',
+                    'permission' => 'manage_roles'
                 ],
                 [
                     'label' => 'Shift Management',

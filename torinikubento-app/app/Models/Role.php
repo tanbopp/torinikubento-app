@@ -86,6 +86,7 @@ class Role extends Model
                 'permissions' => [
                     'view_dashboard',
                     'manage_users',
+                    'manage_roles',
                     'view_daily_reports',
                     'manage_menu',
                     'manage_inventory',

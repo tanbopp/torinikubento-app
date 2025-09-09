@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ManageAccountController;
+use App\Http\Controllers\RoleController;
 
 // Redirect root to login
 Route::get('/', function () {
@@ -50,6 +51,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/reactivate', [ManageAccountController::class, 'reactivate'])->name('reactivate');
         Route::post('/{id}/force-logout', [ManageAccountController::class, 'forceLogout'])->name('force-logout');
         Route::delete('/{id}', [ManageAccountController::class, 'destroy'])->name('destroy');
+    });
+
+    // Role Management
+    Route::middleware('permission:manage_roles')->prefix('roles')->name('roles.')->group(function () {
+        Route::get('/', [RoleController::class, 'index'])->name('index');
+        Route::get('/create', [RoleController::class, 'create'])->name('create');
+        Route::post('/', [RoleController::class, 'store'])->name('store');
+        Route::get('/{role}', [RoleController::class, 'show'])->name('show');
+        Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('edit');
+        Route::put('/{role}', [RoleController::class, 'update'])->name('update');
+        Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
     });
     
     // Owner & Admin Reports
