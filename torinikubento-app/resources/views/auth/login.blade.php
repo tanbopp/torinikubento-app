@@ -12,7 +12,7 @@
     	{{-- Role Cards --}}
     	<div class="grid grid-cols-2 gap-4 w-full max-w-xl mx-auto">
     	    {{-- Owner Card --}}
-    	    <div class="border border-neutral-600/50 rounded-3xl p-4 hover:bg-neutral-800/70 active:bg-neutral-800 cursor-pointer">
+    	    <div class="border border-neutral-600/50 rounded-3xl p-4 hover:bg-neutral-800/70 active:bg-neutral-800 cursor-pointer" onclick="window.location.href='{{ route('login.owner') }}'">
     	        <div class="flex items-center space-x-4">
     	            <div class="w-12 h-12 bg-neutral-700/50 rounded-xl flex items-center justify-center">
     	                <svg class="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
@@ -27,7 +27,7 @@
     	    </div>
 
     	    {{-- Manager Card --}}
-    	    <div class="border border-neutral-600/50 rounded-3xl p-4 hover:bg-neutral-800/70 active:bg-neutral-800 cursor-pointer">
+    	    <div class="border border-neutral-600/50 rounded-3xl p-4 hover:bg-neutral-800/70 active:bg-neutral-800 cursor-pointer" onclick="window.location.href='{{ route('login.manager') }}'">
     	        <div class="flex items-center space-x-4">
     	            <div class="w-12 h-12 bg-neutral-700/50 rounded-xl flex items-center justify-center">
     	                <svg class="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
@@ -42,7 +42,7 @@
     	    </div>
 
     	    {{-- Chef Card --}}
-    	    <div class="border border-neutral-600/50 rounded-3xl p-4 hover:bg-neutral-800/70 active:bg-neutral-800 cursor-pointer">
+    	    <div class="border border-neutral-600/50 rounded-3xl p-4 hover:bg-neutral-800/70 active:bg-neutral-800 cursor-pointer" onclick="window.location.href='{{ route('login.chef') }}'">
     	        <div class="flex items-center space-x-4">
     	            <div class="w-12 h-12 bg-neutral-700/50 rounded-xl flex items-center justify-center">
     	                <svg class="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
@@ -57,7 +57,7 @@
     	    </div>
 
     	    {{-- Waiter Card --}}
-    	    <div class="border border-neutral-600/50 rounded-3xl p-4 hover:bg-neutral-800/70 active:bg-neutral-800 cursor-pointer">
+    	    <div class="border border-neutral-600/50 rounded-3xl p-4 hover:bg-neutral-800/70 active:bg-neutral-800 cursor-pointer" onclick="window.location.href='{{ route('login.waiter') }}'">
     	        <div class="flex items-center space-x-4">
     	            <div class="w-12 h-12 bg-neutral-700/50 rounded-xl flex items-center justify-center">
     	                <svg class="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 20 20">

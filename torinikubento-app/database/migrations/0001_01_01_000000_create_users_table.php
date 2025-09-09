@@ -14,9 +14,20 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('username')->unique()->nullable(); // Username untuk login
+            $table->string('email')->unique()->nullable();
+            $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('pin', 255)->nullable(); // PIN 4-6 digit untuk login cepat (hashed)
+            $table->unsignedBigInteger('role_id')->nullable(); // Foreign key ke roles table
+            $table->boolean('is_active')->default(true);
+            $table->boolean('two_factor_enabled')->default(false);
+            $table->string('two_factor_secret')->nullable();
+            $table->timestamp('last_login_at')->nullable();
+            $table->string('last_login_ip')->nullable();
+            $table->integer('login_attempts')->default(0);
+            $table->timestamp('locked_until')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

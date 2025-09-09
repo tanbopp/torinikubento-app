@@ -6,7 +6,7 @@
         {{-- Header --}}
         <div class="text-center mb-8">
             <h2 class="text-5xl font-bold mb-6">Selamat Datang</h2>
-            <p class="text-neutral-500 text-xl font-medium mb-6">Masuk dengan akun milik Anda</p>
+            <p class="text-neutral-500 text-xl font-medium mb-6">Masuk sebagai Chef</p>
         </div>
 
         {{-- Login Form --}}
@@ -30,9 +30,9 @@
             <form action="{{ route('login.submit') }}" method="POST">
                 @csrf
                 <input type="hidden" name="login_type" value="username">
-                <input type="hidden" name="expected_role" value="owner">
+                <input type="hidden" name="expected_role" value="kitchen">
                 
-                {{-- Input Nomor --}}
+                {{-- Input Username --}}
                 <div>
                     <input type="text" 
                            name="identifier" 
