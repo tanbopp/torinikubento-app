@@ -73,6 +73,13 @@ class MenuService
                     ]
                 ],
                 [
+                    'label' => 'Kelola Akun',
+                    'route' => 'manage-accounts.index',
+                    'icon' => 'fas fa-user-cog',
+                    'active_pattern' => 'manage-accounts*',
+                    'permission' => 'manage_users'
+                ],
+                [
                     'label' => 'Monitoring Live',
                     'route' => 'monitoring.live',
                     'icon' => 'fas fa-eye',
@@ -149,6 +156,13 @@ class MenuService
                             'permission' => 'manage_inventory'
                         ]
                     ]
+                ],
+                [
+                    'label' => 'Kelola Akun',
+                    'route' => 'manage-accounts.index',
+                    'icon' => 'fas fa-user-cog',
+                    'active_pattern' => 'manage-accounts*',
+                    'permission' => 'manage_users'
                 ],
                 [
                     'label' => 'Shift Management',

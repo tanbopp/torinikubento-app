@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ManageAccountController;
 
 // Redirect root to login
 Route::get('/', function () {
@@ -36,6 +37,20 @@ Route::middleware('auth')->group(function () {
     
     // Dashboard routes with role-based access
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Manage Accounts (User Management with advanced features)
+    Route::middleware('permission:manage_users')->prefix('manage-accounts')->name('manage-accounts.')->group(function () {
+        Route::get('/', [ManageAccountController::class, 'index'])->name('index');
+        Route::get('/create', [ManageAccountController::class, 'create'])->name('create');
+        Route::post('/', [ManageAccountController::class, 'store'])->name('store');
+        Route::get('/{id}', [ManageAccountController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [ManageAccountController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [ManageAccountController::class, 'update'])->name('update');
+        Route::post('/{id}/deactivate', [ManageAccountController::class, 'deactivate'])->name('deactivate');
+        Route::post('/{id}/reactivate', [ManageAccountController::class, 'reactivate'])->name('reactivate');
+        Route::post('/{id}/force-logout', [ManageAccountController::class, 'forceLogout'])->name('force-logout');
+        Route::delete('/{id}', [ManageAccountController::class, 'destroy'])->name('destroy');
+    });
     
     // Owner & Admin Reports
     Route::middleware('permission:view_financial_reports')->prefix('reports')->group(function () {

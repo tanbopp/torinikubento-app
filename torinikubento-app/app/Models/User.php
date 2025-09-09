@@ -30,6 +30,7 @@ class User extends Authenticatable
         'pin',
         'role_id',
         'is_active',
+        'force_password_change',
         'two_factor_enabled',
         'two_factor_secret',
         'last_login_at',
@@ -81,6 +82,14 @@ class User extends Authenticatable
     public function sessions(): HasMany
     {
         return $this->hasMany(UserSession::class);
+    }
+
+    /**
+     * Alias for sessions relationship
+     */
+    public function userSessions(): HasMany
+    {
+        return $this->sessions();
     }
 
     /**
