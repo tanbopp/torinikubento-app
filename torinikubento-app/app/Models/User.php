@@ -205,11 +205,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has specific role
+     */
+    public function hasRole(string $roleName): bool
+    {
+        return $this->role && $this->role->name === $roleName;
+    }
+
+    /**
      * Check if user is owner
      */
     public function isOwner(): bool
     {
-        return $this->role && $this->role->name === 'owner';
+        return $this->hasRole('owner');
     }
 
     /**
@@ -217,7 +225,23 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role && $this->role->name === 'admin';
+        return $this->hasRole('admin');
+    }
+
+    /**
+     * Check if user is kasir
+     */
+    public function isKasir(): bool
+    {
+        return $this->hasRole('kasir');
+    }
+
+    /**
+     * Check if user is waiter
+     */
+    public function isWaiter(): bool
+    {
+        return $this->hasRole('waiter');
     }
 
     /**

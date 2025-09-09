@@ -65,7 +65,7 @@
 <body class="bg-neutral-900 text-white font-poppins">
 
 	{{-- Sidebar --}}
-	@include('partials.sidebar.sidebarOwner')
+	@include('partials.sidebar.sidebar')
 
 	{{-- Main Content --}}
 	<main x-data="{ init() { $store.sidebar.init() } }" x-init="init()" 
