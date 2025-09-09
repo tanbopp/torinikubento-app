@@ -37,11 +37,6 @@ Route::middleware('auth')->group(function () {
     // Dashboard routes with role-based access
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-    // Owner routes
-    Route::middleware('role:owner')->prefix('owner')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'owner'])->name('owner.dashboard');
-    });
-    
     // Admin routes
     Route::middleware('role:admin,owner')->prefix('admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'admin'])->name('admin.dashboard');

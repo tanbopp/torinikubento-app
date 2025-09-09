@@ -29,6 +29,22 @@
 
 	{{-- Alpine.js --}}
 	<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+	
+	{{-- Alpine.js Global Store for Sidebar --}}
+	<script>
+		document.addEventListener('alpine:init', () => {
+			Alpine.store('sidebar', {
+				open: true,
+				initialized: false,
+				toggle() {
+					this.open = !this.open
+				},
+				init() {
+					this.initialized = true
+				}
+			})
+		})
+	</script>
 
 	{{-- Font Awesome --}}
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -52,12 +68,18 @@
 	@include('partials.sidebar.sidebarOwner')
 
 	{{-- Main Content --}}
-	<main class="ml-64 min-h-screen">
+	<main x-data="{ init() { $store.sidebar.init() } }" x-init="init()" 
+		  class="min-h-screen ml-64" 
+		  :class="{
+			'transition-all duration-300 ease-in-out': $store.sidebar.initialized,
+			'ml-64': $store.sidebar.open,
+			'ml-0': !$store.sidebar.open
+		  }">
 		{{-- Include Header --}}
 		@include('partials.header.main')
 
 		{{-- Content Area --}}
-		<div class="p-6">
+		<div>
 			@yield('main-content')
 		</div>
 	</main>

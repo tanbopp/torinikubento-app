@@ -18,7 +18,7 @@ class DashboardController extends Controller
         // Redirect user to appropriate dashboard based on role
         switch ($user->role->name) {
             case 'owner':
-                return redirect()->route('owner.dashboard');
+                return $this->owner();
             case 'admin':
                 return redirect()->route('admin.dashboard');
             case 'kasir':

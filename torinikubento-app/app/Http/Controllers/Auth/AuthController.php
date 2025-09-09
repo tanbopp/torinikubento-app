@@ -206,7 +206,7 @@ class AuthController extends Controller
 
         switch ($user->role->name) {
             case 'owner':
-                return '/owner/dashboard';
+                return '/dashboard';
             case 'admin':
                 return '/admin/dashboard';
             case 'kasir':

@@ -1,6 +1,6 @@
 @extends('partials.layouts.main')
 
-@section('page-title', 'Dashboard Owner')
+@section('page-title', 'Dashboard')
 
 @section('main-content')
 <div class="p-6">
