@@ -5,6 +5,9 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ManageAccountController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\IngredientController;
 
 // Redirect root to login
 Route::get('/', function () {
@@ -92,6 +95,47 @@ Route::middleware('auth')->group(function () {
         Route::get('/{id}/edit', function () { return view('menu.edit'); })->name('menu.edit');
         // View menu for waiters/kitchen
         Route::get('/view', function () { return view('menu.view'); })->name('menu.view');
+    });
+
+    // Product Management
+    Route::prefix('products')->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('products.index');
+        Route::get('/create', [ProductController::class, 'create'])->name('products.create');
+        Route::post('/', [ProductController::class, 'store'])->name('products.store');
+        Route::get('/{product}', [ProductController::class, 'show'])->name('products.show');
+        Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::put('/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+        Route::patch('/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
+        Route::patch('/{product}/toggle-availability', [ProductController::class, 'toggleAvailability'])->name('products.toggle-availability');
+        Route::get('/analytics/menu-engineering', [ProductController::class, 'menuEngineering'])->name('products.menu-engineering');
+        Route::get('/recipes/bom', [ProductController::class, 'bomView'])->name('products.bom');
+        Route::post('/update-cost-prices', [ProductController::class, 'updateAllCostPrices'])->name('products.update-cost-prices');
+    });
+
+    // Category Management
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
+        Route::get('/create', [CategoryController::class, 'create'])->name('categories.create');
+        Route::post('/', [CategoryController::class, 'store'])->name('categories.store');
+        Route::get('/{category}', [CategoryController::class, 'show'])->name('categories.show');
+        Route::get('/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+        Route::put('/{category}', [CategoryController::class, 'update'])->name('categories.update');
+        Route::delete('/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+        Route::patch('/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
+    });
+
+    // Ingredient Management
+    Route::prefix('ingredients')->group(function () {
+        Route::get('/', [IngredientController::class, 'index'])->name('ingredients.index');
+        Route::get('/create', [IngredientController::class, 'create'])->name('ingredients.create');
+        Route::post('/', [IngredientController::class, 'store'])->name('ingredients.store');
+        Route::get('/{ingredient}', [IngredientController::class, 'show'])->name('ingredients.show');
+        Route::get('/{ingredient}/edit', [IngredientController::class, 'edit'])->name('ingredients.edit');
+        Route::put('/{ingredient}', [IngredientController::class, 'update'])->name('ingredients.update');
+        Route::delete('/{ingredient}', [IngredientController::class, 'destroy'])->name('ingredients.destroy');
+        Route::get('/analytics/low-stock', [IngredientController::class, 'lowStock'])->name('ingredients.low-stock');
+        Route::get('/analytics/near-expiry', [IngredientController::class, 'nearExpiry'])->name('ingredients.near-expiry');
     });
 
     // Promotions Management

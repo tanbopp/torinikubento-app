@@ -1,6 +1,6 @@
 {{-- Sidebar --}}
 <aside x-data 
-	   class="fixed top-0 left-0 h-full bg-neutral-800 border-r border-neutral-700/50 z-40 flex flex-col transition-all duration-300 ease-in-out w-64"
+	   class="fixed top-0 left-0 h-full bg-neutral-800 border-r border-neutral-700/50 z-40 flex flex-col transition-all duration-300 ease-in-out w-64 text-sm"
 	   :class="$store.sidebar.open ? 'translate-x-0' : '-translate-x-full'">
 	<div class="px-4 py-3 flex-shrink-0 flex justify-end" x-show="$store.sidebar.open" x-transition>
 		<button @click="$store.sidebar.toggle()" class="relative px-2 py-2 rounded-xl transition-colors hover:bg-neutral-700/80 text-white">
@@ -28,7 +28,7 @@
 								@if(isset($menuItem['icon']))
 									<i class="{{ $menuItem['icon'] }} text-sm w-4"></i>
 								@endif
-								<span class="font-medium">{{ $menuItem['label'] }}</span>
+								<span class="font-normal">{{ $menuItem['label'] }}</span>
 							</div>
 							<i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
 						</button>

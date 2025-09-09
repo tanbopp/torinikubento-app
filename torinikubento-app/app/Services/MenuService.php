@@ -46,6 +46,33 @@ class MenuService
                     ]
                 ],
                 [
+                    'label' => 'Manajemen Produk',
+                    'icon' => 'fas fa-box-open',
+                    'permission' => 'manage_products',
+                    'submenu' => [
+                        [
+                            'label' => 'Master Produk',
+                            'route' => 'products.index',
+                            'permission' => 'manage_products'
+                        ],
+                        [
+                            'label' => 'Kategori',
+                            'route' => 'categories.index',
+                            'permission' => 'manage_categories'
+                        ],
+                        [
+                            'label' => 'Bahan Baku',
+                            'route' => 'ingredients.index',
+                            'permission' => 'manage_ingredients'
+                        ],
+                        [
+                            'label' => 'Menu Engineering',
+                            'route' => 'products.menu-engineering',
+                            'permission' => 'view_menu_analytics'
+                        ]
+                    ]
+                ],
+                [
                     'label' => 'Manajemen',
                     'icon' => 'fas fa-users-cog',
                     'permission' => 'manage_users',
@@ -139,6 +166,28 @@ class MenuService
                             'label' => 'Laporan Shift',
                             'route' => 'reports.shifts',
                             'permission' => 'view_daily_reports'
+                        ]
+                    ]
+                ],
+                [
+                    'label' => 'Manajemen Produk',
+                    'icon' => 'fas fa-box-open',
+                    'permission' => 'manage_products',
+                    'submenu' => [
+                        [
+                            'label' => 'Master Produk',
+                            'route' => 'products.index',
+                            'permission' => 'manage_products'
+                        ],
+                        [
+                            'label' => 'Kategori',
+                            'route' => 'categories.index',
+                            'permission' => 'manage_categories'
+                        ],
+                        [
+                            'label' => 'Bahan Baku',
+                            'route' => 'ingredients.index',
+                            'permission' => 'manage_ingredients'
                         ]
                     ]
                 ],
@@ -273,6 +322,13 @@ class MenuService
                     'icon' => 'fas fa-list',
                     'active_pattern' => 'kitchen.menu',
                     'permission' => 'view_menu_items'
+                ],
+                [
+                    'label' => 'Resep & BOM',
+                    'route' => 'products.bom',
+                    'icon' => 'fas fa-book',
+                    'active_pattern' => 'products.bom',
+                    'permission' => 'view_product_recipes'
                 ]
             ],
             'inventory' => [

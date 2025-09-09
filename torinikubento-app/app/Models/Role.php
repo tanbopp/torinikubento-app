@@ -77,7 +77,27 @@ class Role extends Model
                     'manage_promotions',
                     'manage_settings',
                     'void_transactions',
-                    'access_audit_logs'
+                    'access_audit_logs',
+                    // Product Management
+                    'manage_products',
+                    'manage_categories', 
+                    'manage_ingredients',
+                    'view_menu_analytics',
+                    'view_products',
+                    'create_products',
+                    'edit_products',
+                    'delete_products',
+                    'view_categories',
+                    'create_categories',
+                    'edit_categories',
+                    'delete_categories',
+                    'view_ingredients',
+                    'create_ingredients',
+                    'edit_ingredients',
+                    'delete_ingredients',
+                    'view_analytics',
+                    'view_cost_analysis',
+                    'manage_recipes'
                 ]
             ],
             'admin' => [
@@ -92,7 +112,17 @@ class Role extends Model
                     'manage_inventory',
                     'manage_shifts',
                     'void_transactions',
-                    'handle_refunds'
+                    'handle_refunds',
+                    // Product Management (Limited)
+                    'manage_products',
+                    'manage_categories', 
+                    'manage_ingredients',
+                    'view_products',
+                    'edit_products',
+                    'view_categories',
+                    'view_ingredients',
+                    'view_analytics',
+                    'view_cost_analysis'
                 ]
             ],
             'kasir' => [
@@ -103,7 +133,9 @@ class Role extends Model
                     'create_transactions',
                     'print_receipts',
                     'view_daily_transactions',
-                    'handle_payments'
+                    'handle_payments',
+                    'view_products', // Need to see products for POS
+                    'view_categories'
                 ]
             ],
             'waiter' => [
@@ -113,7 +145,9 @@ class Role extends Model
                     'manage_tables',
                     'create_orders',
                     'update_order_status',
-                    'view_menu'
+                    'view_menu',
+                    'view_products', // Need to see products for orders
+                    'view_categories'
                 ]
             ],
             'kitchen' => [
@@ -122,7 +156,10 @@ class Role extends Model
                 'permissions' => [
                     'view_kitchen_display',
                     'update_order_status',
-                    'view_menu_items'
+                    'view_menu_items',
+                    'view_product_recipes',
+                    'view_products', // Need to see products for kitchen display
+                    'view_ingredients' // Need to see ingredients
                 ]
             ],
             'inventory' => [
@@ -131,7 +168,10 @@ class Role extends Model
                 'permissions' => [
                     'manage_inventory',
                     'view_stock_reports',
-                    'update_stock_levels'
+                    'update_stock_levels',
+                    'view_ingredients',
+                    'edit_ingredients',
+                    'create_ingredients'
                 ]
             ],
             'supervisor' => [
@@ -141,7 +181,9 @@ class Role extends Model
                     'view_shift_reports',
                     'approve_voids',
                     'approve_refunds',
-                    'view_daily_summary'
+                    'view_daily_summary',
+                    'view_products',
+                    'view_analytics'
                 ]
             ]
         ];
