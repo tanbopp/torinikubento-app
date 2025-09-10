@@ -37,13 +37,15 @@
                 <div class="p-6">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {{-- Image --}}
-                        <div>
+                        <div class="flex justify-center">
                             @if($product->image_path)
-                            <img src="{{ asset('storage/' . $product->image_path) }}" 
-                                 alt="{{ $product->name }}" 
-                                 class="w-full h-64 object-cover rounded-lg">
+                            <div class="w-64 h-64 overflow-hidden rounded-lg border-2 border-neutral-600">
+                                <img src="{{ asset('storage/' . $product->image_path) }}" 
+                                     alt="{{ $product->name }}" 
+                                     class="w-full h-full object-cover">
+                            </div>
                             @else
-                            <div class="w-full h-64 bg-neutral-700 rounded-lg flex items-center justify-center">
+                            <div class="w-64 h-64 bg-neutral-700 rounded-lg flex items-center justify-center border-2 border-neutral-600">
                                 <i class="fas fa-utensils text-6xl text-neutral-400"></i>
                             </div>
                             @endif

@@ -26,7 +26,7 @@ class ProductController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $products = Product::with(['category', 'variants', 'ingredients'])
+        $products = Product::with(['category', 'tax', 'variants', 'ingredients'])
             ->when($request->search, function($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('name_japanese', 'like', "%{$search}%");
@@ -49,7 +49,38 @@ class ProductController extends Controller
 
         $categories = Category::active()->ordered()->get();
 
-        return view('main.manage-products.index', compact('products', 'categories'));
+        // Check which columns have data
+        $columnVisibility = [
+            'has_japanese_names' => $products->getCollection()->contains(function($product) {
+                return !empty($product->name_japanese);
+            }),
+            'has_spice_levels' => $products->getCollection()->contains(function($product) {
+                return $product->spice_level > 0;
+            }),
+            'has_promo_prices' => $products->getCollection()->contains(function($product) {
+                return !empty($product->promo_price) && $product->promo_price < $product->base_price;
+            }),
+            'has_taxes' => $products->getCollection()->contains(function($product) {
+                return !empty($product->tax) && $product->tax->is_active;
+            }),
+            'has_seasonal_products' => $products->getCollection()->contains(function($product) {
+                return $product->is_seasonal;
+            }),
+            'has_limited_products' => $products->getCollection()->contains(function($product) {
+                return $product->is_limited_edition;
+            }),
+            'has_daily_limits' => $products->getCollection()->contains(function($product) {
+                return !empty($product->daily_limit);
+            }),
+            'has_inactive_products' => $products->getCollection()->contains(function($product) {
+                return !$product->is_active;
+            }),
+            'has_unavailable_products' => $products->getCollection()->contains(function($product) {
+                return !$product->is_available;
+            })
+        ];
+
+        return view('main.manage-products.index', compact('products', 'categories', 'columnVisibility'));
     }
 
     /**
@@ -87,8 +118,11 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'allergen_info' => 'nullable|array',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'cropped_image' => 'nullable|string', // Base64 data dari cropper
             'base_price' => 'required|numeric|min:0',
             'promo_price' => 'nullable|numeric|min:0',
+            'cost_price' => 'nullable|numeric|min:0',
+            'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
             'is_available' => 'boolean',
             'is_seasonal' => 'boolean',
@@ -99,6 +133,7 @@ class ProductController extends Controller
             'season_start_date' => 'nullable|date',
             'season_end_date' => 'nullable|date|after:season_start_date',
             'nutritional_info' => 'nullable|array',
+            'tax_id' => 'nullable|exists:taxes,id',
             'ingredients' => 'nullable|array',
             'ingredients.*.ingredient_id' => 'required_with:ingredients|exists:ingredients,id',
             'ingredients.*.quantity' => 'required_with:ingredients|numeric|min:0.01',
@@ -110,8 +145,26 @@ class ProductController extends Controller
 
         DB::beginTransaction();
         try {
-            // Handle image upload
-            if ($request->hasFile('image')) {
+            // Handle image upload - prioritas cropped image dari modal cropper
+            if ($request->filled('cropped_image')) {
+                // Handle cropped image (base64 data)
+                $base64Image = $request->cropped_image;
+                
+                // Remove header dari base64 string
+                $image_parts = explode(";base64,", $base64Image);
+                $image_type_aux = explode("image/", $image_parts[0]);
+                $image_type = $image_type_aux[1];
+                $image_base64 = base64_decode($image_parts[1]);
+                
+                $filename = 'product_' . time() . '_' . Str::random(10) . '.' . $image_type;
+                $filepath = 'products/' . $filename;
+                
+                // Simpan ke storage
+                Storage::disk('public')->put($filepath, $image_base64);
+                $validated['image_path'] = $filepath;
+                
+            } elseif ($request->hasFile('image')) {
+                // Handle regular file upload sebagai fallback
                 $image = $request->file('image');
                 $filename = 'product_' . time() . '_' . Str::random(10) . '.' . $image->getClientOriginalExtension();
                 $validated['image_path'] = $image->storeAs('products', $filename, 'public');
@@ -135,8 +188,14 @@ class ProductController extends Controller
                 $product->addons()->attach($request->addons);
             }
 
-            // Update cost price based on ingredients
-            $product->updateCostPrice();
+            // Update cost price and margin
+            if (!$request->filled('cost_price') || $request->cost_price == 0) {
+                $product->updateCostPrice();
+            } else {
+                // Manual cost price, hitung margin saja
+                $product->margin_percentage = $product->calculateMarginPercentage();
+                $product->save();
+            }
 
             DB::commit();
 
@@ -168,6 +227,7 @@ class ProductController extends Controller
 
         $product->load([
             'category', 
+            'tax',
             'variants', 
             'ingredients' => function($query) {
                 $query->orderBy('name');
@@ -197,7 +257,7 @@ class ProductController extends Controller
         $addons = Addon::active()->orderBy('name')->get();
         $taxes = Tax::active()->orderBy('name')->get();
 
-        $product->load(['ingredients', 'addons', 'variants']);
+        $product->load(['ingredients', 'addons', 'variants', 'tax']);
 
         return view('main.manage-products.edit', compact('product', 'categories', 'ingredients', 'addons', 'taxes'));
     }
@@ -219,8 +279,12 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'allergen_info' => 'nullable|array',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'cropped_image' => 'nullable|string', // Base64 data dari cropper
+            'remove_image' => 'nullable|boolean', // Checkbox untuk hapus gambar
             'base_price' => 'required|numeric|min:0',
             'promo_price' => 'nullable|numeric|min:0',
+            'cost_price' => 'nullable|numeric|min:0',
+            'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
             'is_available' => 'boolean',
             'is_seasonal' => 'boolean',
@@ -231,6 +295,7 @@ class ProductController extends Controller
             'season_start_date' => 'nullable|date',
             'season_end_date' => 'nullable|date|after:season_start_date',
             'nutritional_info' => 'nullable|array',
+            'tax_id' => 'nullable|exists:taxes,id',
             'ingredients' => 'nullable|array',
             'ingredients.*.ingredient_id' => 'required_with:ingredients|exists:ingredients,id',
             'ingredients.*.quantity' => 'required_with:ingredients|numeric|min:0.01',
@@ -242,8 +307,38 @@ class ProductController extends Controller
 
         DB::beginTransaction();
         try {
-            // Handle image upload
-            if ($request->hasFile('image')) {
+            // Handle image removal
+            if ($request->boolean('remove_image')) {
+                if ($product->image_path) {
+                    Storage::disk('public')->delete($product->image_path);
+                }
+                $validated['image_path'] = null;
+            }
+            // Handle cropped image upload
+            elseif ($request->filled('cropped_image')) {
+                // Delete old image if exists
+                if ($product->image_path) {
+                    Storage::disk('public')->delete($product->image_path);
+                }
+
+                // Handle cropped image (base64 data)
+                $base64Image = $request->cropped_image;
+                
+                // Remove header dari base64 string
+                $image_parts = explode(";base64,", $base64Image);
+                $image_type_aux = explode("image/", $image_parts[0]);
+                $image_type = $image_type_aux[1];
+                $image_base64 = base64_decode($image_parts[1]);
+                
+                $filename = 'product_' . time() . '_' . Str::random(10) . '.' . $image_type;
+                $filepath = 'products/' . $filename;
+                
+                // Simpan ke storage
+                Storage::disk('public')->put($filepath, $image_base64);
+                $validated['image_path'] = $filepath;
+            }
+            // Handle regular file upload sebagai fallback
+            elseif ($request->hasFile('image')) {
                 // Delete old image if exists
                 if ($product->image_path) {
                     Storage::disk('public')->delete($product->image_path);
@@ -278,8 +373,14 @@ class ProductController extends Controller
                 $product->addons()->detach();
             }
 
-            // Update cost price based on ingredients
-            $product->updateCostPrice();
+            // Update cost price and margin
+            if (!$request->filled('cost_price') || $request->cost_price == 0) {
+                $product->updateCostPrice();
+            } else {
+                // Manual cost price, hitung margin saja
+                $product->margin_percentage = $product->calculateMarginPercentage();
+                $product->save();
+            }
 
             DB::commit();
 

@@ -8,7 +8,7 @@
     <div class="mb-8">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-bold text-white mb-2">🍜 Tambah Produk</h1>
+                <h1 class="text-2xl font-bold text-white mb-2">Tambah Produk</h1>
                 <p class="text-neutral-400">Buat produk menu baru untuk resto Jepang Toriniku Bento</p>
             </div>
             <div>
@@ -100,20 +100,44 @@
                                 @enderror
                             </div>
 
-                            {{-- Spice Level --}}
+                            {{-- Tax --}}
                             <div>
                                 <label class="block text-sm font-medium text-neutral-300 mb-2">
-                                    Level Pedas
+                                    Pajak
                                 </label>
-                                <select name="spice_level" class="w-full bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
-                                    <option value="0" {{ old('spice_level', 0) == 0 ? 'selected' : '' }}>Tidak Pedas</option>
-                                    <option value="1" {{ old('spice_level') == 1 ? 'selected' : '' }}>🌶️ Level 1</option>
-                                    <option value="2" {{ old('spice_level') == 2 ? 'selected' : '' }}>🌶️🌶️ Level 2</option>
-                                    <option value="3" {{ old('spice_level') == 3 ? 'selected' : '' }}>🌶️🌶️🌶️ Level 3</option>
-                                    <option value="4" {{ old('spice_level') == 4 ? 'selected' : '' }}>🌶️🌶️🌶️🌶️ Level 4</option>
-                                    <option value="5" {{ old('spice_level') == 5 ? 'selected' : '' }}>🌶️🌶️🌶️🌶️🌶️ Level 5</option>
+                                <select name="tax_id" class="w-full bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 @error('tax_id') border-red-500 @enderror">
+                                    <option value="">Tanpa Pajak</option>
+                                    @foreach($taxes as $tax)
+                                    <option value="{{ $tax->id }}" {{ old('tax_id') == $tax->id ? 'selected' : '' }}>
+                                        {{ $tax->name }} 
+                                        @if($tax->type === 'percentage')
+                                            ({{ $tax->rate }}%)
+                                        @else
+                                            (Rp {{ number_format($tax->rate, 0, ',', '.') }})
+                                        @endif
+                                        {{ $tax->is_inclusive ? ' - Sudah Termasuk' : ' - Belum Termasuk' }}
+                                    </option>
+                                    @endforeach
                                 </select>
+                                @error('tax_id')
+                                    <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                                @enderror
                             </div>
+                        </div>
+
+                        {{-- Spice Level --}}
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-300 mb-2">
+                                Level Pedas
+                            </label>
+                            <select name="spice_level" class="w-full bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="0" {{ old('spice_level', 0) == 0 ? 'selected' : '' }}>Tidak Pedas</option>
+                                <option value="1" {{ old('spice_level') == 1 ? 'selected' : '' }}>🌶️ Level 1</option>
+                                <option value="2" {{ old('spice_level') == 2 ? 'selected' : '' }}>🌶️🌶️ Level 2</option>
+                                <option value="3" {{ old('spice_level') == 3 ? 'selected' : '' }}>🌶️🌶️🌶️ Level 3</option>
+                                <option value="4" {{ old('spice_level') == 4 ? 'selected' : '' }}>🌶️🌶️🌶️🌶️ Level 4</option>
+                                <option value="5" {{ old('spice_level') == 5 ? 'selected' : '' }}>🌶️🌶️🌶️🌶️🌶️ Level 5</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -199,15 +223,26 @@
                                    accept="image/*"
                                    id="product-image"
                                    class="hidden"
-                                   onchange="previewImage(event)">
+                                   onchange="handleImageSelect(event)">
+                            
+                            <input type="hidden" name="cropped_image" id="cropped-image-data">
                             
                             <div id="image-preview" class="hidden">
-                                <img id="preview-img" class="mx-auto max-w-full h-40 object-cover rounded-lg mb-4">
-                                <button type="button" 
-                                        onclick="removeImage()"
-                                        class="text-red-400 hover:text-red-300 text-sm">
-                                    <i class="fas fa-trash mr-1"></i> Hapus Gambar
-                                </button>
+                                <div class="mx-auto w-40 h-40 overflow-hidden rounded-lg mb-4 border-2 border-neutral-600">
+                                    <img id="preview-img" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex items-center justify-center space-x-3">
+                                    <button type="button" 
+                                            onclick="openCropModal()"
+                                            class="text-orange-400 hover:text-orange-300 text-sm">
+                                        <i class="fas fa-crop mr-1"></i> Crop Ulang
+                                    </button>
+                                    <button type="button" 
+                                            onclick="removeImage()"
+                                            class="text-red-400 hover:text-red-300 text-sm">
+                                        <i class="fas fa-trash mr-1"></i> Hapus Gambar
+                                    </button>
+                                </div>
                             </div>
                             
                             <div id="upload-placeholder" class="space-y-4">
@@ -221,6 +256,7 @@
                                         Pilih Gambar
                                     </button>
                                     <p class="text-sm text-neutral-400 mt-2">PNG, JPG hingga 2MB</p>
+                                    <p class="text-xs text-neutral-500 mt-1">Gambar akan di-crop ke rasio 1:1 (square)</p>
                                 </div>
                             </div>
                         </div>
@@ -334,24 +370,182 @@
     </form>
 </div>
 
+{{-- Image Cropper Modal --}}
+<div id="crop-modal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden items-center justify-center">
+    <div class="bg-neutral-800 rounded-lg border border-neutral-700 w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
+        <div class="p-6 border-b border-neutral-700 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-white">Crop Gambar Produk</h3>
+            <button type="button" onclick="closeCropModal()" class="text-neutral-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="p-6">
+            <div class="bg-neutral-900 rounded-lg overflow-hidden mb-6" style="max-height: 400px;">
+                <img id="crop-image" class="max-w-full" style="display: block;">
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-neutral-400">
+                    <p><i class="fas fa-info-circle mr-2"></i>Drag untuk memindahkan, scroll untuk zoom</p>
+                    <p class="mt-1">Rasio akan otomatis menjadi 1:1 (square)</p>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <button type="button" 
+                            onclick="closeCropModal()" 
+                            class="bg-neutral-600 hover:bg-neutral-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        Batal
+                    </button>
+                    <button type="button" 
+                            onclick="applyCrop()" 
+                            class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-check mr-2"></i>Terapkan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Include Cropper.js from CDN --}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
 <script>
-function previewImage(event) {
+let cropper;
+let currentFile;
+
+function handleImageSelect(event) {
     const file = event.target.files[0];
     if (file) {
+        currentFile = file;
+        
+        // Validate file size (2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Ukuran file terlalu besar. Maksimal 2MB.');
+            event.target.value = '';
+            return;
+        }
+        
+        // Validate file type
+        if (!file.type.match('image.*')) {
+            alert('File harus berupa gambar (PNG, JPG, JPEG).');
+            event.target.value = '';
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.getElementById('preview-img').src = e.target.result;
-            document.getElementById('image-preview').classList.remove('hidden');
-            document.getElementById('upload-placeholder').classList.add('hidden');
+            document.getElementById('crop-image').src = e.target.result;
+            openCropModal();
         };
         reader.readAsDataURL(file);
     }
 }
 
+function openCropModal() {
+    const modal = document.getElementById('crop-modal');
+    const image = document.getElementById('crop-image');
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    
+    // Initialize cropper
+    setTimeout(() => {
+        if (cropper) {
+            cropper.destroy();
+        }
+        
+        cropper = new Cropper(image, {
+            aspectRatio: 1, // Square aspect ratio
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 1,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            background: false,
+            modal: true,
+            guides: true,
+            center: true,
+            highlight: true,
+            responsive: true,
+            restore: true,
+            checkCrossOrigin: true,
+            checkOrientation: true,
+            scalable: true,
+            zoomable: true,
+            zoomOnTouch: true,
+            zoomOnWheel: true,
+            wheelZoomRatio: 0.1,
+            cropBoxData: null,
+            canvasData: null,
+        });
+    }, 100);
+}
+
+function closeCropModal() {
+    const modal = document.getElementById('crop-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+    
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+}
+
+function applyCrop() {
+    if (cropper) {
+        const canvas = cropper.getCroppedCanvas({
+            width: 400,
+            height: 400,
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        });
+        
+        canvas.toBlob(function(blob) {
+            // Create preview
+            const previewImg = document.getElementById('preview-img');
+            previewImg.src = canvas.toDataURL();
+            
+            // Store cropped image data
+            document.getElementById('cropped-image-data').value = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // Update UI
+            document.getElementById('image-preview').classList.remove('hidden');
+            document.getElementById('upload-placeholder').classList.add('hidden');
+            
+            closeCropModal();
+        }, 'image/jpeg', 0.9);
+    }
+}
+
 function removeImage() {
     document.getElementById('product-image').value = '';
+    document.getElementById('cropped-image-data').value = '';
     document.getElementById('image-preview').classList.add('hidden');
     document.getElementById('upload-placeholder').classList.remove('hidden');
+    
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
 }
+
+// Close modal when clicking outside
+document.getElementById('crop-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCropModal();
+    }
+});
+
+// Prevent modal close when clicking inside modal content
+document.querySelector('#crop-modal .bg-neutral-800').addEventListener('click', function(e) {
+    e.stopPropagation();
+});
 </script>
 @endsection

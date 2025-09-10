@@ -340,6 +340,13 @@ class MenuService
                     'permission' => 'manage_inventory'
                 ],
                 [
+                    'label' => 'Bahan Baku',
+                    'route' => 'ingredients.index',
+                    'icon' => 'fas fa-seedling',
+                    'active_pattern' => 'ingredients*',
+                    'permission' => 'view_ingredients'
+                ],
+                [
                     'label' => 'Manajemen Stok',
                     'icon' => 'fas fa-warehouse',
                     'permission' => 'manage_inventory',

@@ -20,7 +20,7 @@
     <button type="button" 
             onclick="toggleContextMenu('{{ $id }}')"
             class="inline-flex items-center justify-center w-8 h-8 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded-lg transition-colors duration-200">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <svg class="w-4 h-4 rotate-90" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
         </svg>
     </button>
@@ -44,6 +44,11 @@
             const button = event.target.closest('button');
             const dropdown = document.getElementById('context-menu-' + menuId);
             const isHidden = dropdown.classList.contains('hidden');
+            
+            // Close all filter menus first
+            if (typeof window.closeAllFilterMenus === 'function') {
+                window.closeAllFilterMenus();
+            }
             
             // Close all other context menus first
             document.querySelectorAll('[id^="context-menu-"]').forEach(menu => {

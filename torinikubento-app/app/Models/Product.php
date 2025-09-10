@@ -14,6 +14,7 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'tax_id',
         'name',
         'name_japanese',
         'description',
@@ -63,6 +64,14 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the tax of this product
+     */
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class);
     }
 
     /**
@@ -144,6 +153,42 @@ class Product extends Model
     }
 
     /**
+     * Get price including tax
+     */
+    public function getPriceWithTax(): float
+    {
+        $basePrice = $this->getEffectivePrice();
+        
+        if ($this->tax && $this->tax->is_active) {
+            if ($this->tax->is_inclusive) {
+                return $basePrice;
+            } else {
+                return $basePrice + $this->tax->calculateTax($basePrice);
+            }
+        }
+        
+        return $basePrice;
+    }
+
+    /**
+     * Get tax amount for this product
+     */
+    public function getTaxAmount(): float
+    {
+        $basePrice = $this->getEffectivePrice();
+        
+        if ($this->tax && $this->tax->is_active) {
+            if ($this->tax->is_inclusive) {
+                return $this->tax->calculateTax($this->tax->calculateBaseFromInclusive($basePrice));
+            } else {
+                return $this->tax->calculateTax($basePrice);
+            }
+        }
+        
+        return 0;
+    }
+
+    /**
      * Calculate food cost based on ingredients
      */
     public function calculateFoodCost(): float
@@ -159,18 +204,43 @@ class Product extends Model
         return $totalCost;
     }
 
-    /**
+        /**
      * Update cost price based on current ingredients
      */
     public function updateCostPrice(): void
     {
-        $this->cost_price = $this->calculateFoodCost();
+        // Calculate food cost from ingredients
+        $calculatedCost = $this->calculateFoodCost();
         
-        if ($this->cost_price > 0) {
-            $this->margin_percentage = (($this->base_price - $this->cost_price) / $this->base_price) * 100;
+        // Use calculated cost if current cost_price is 0 or null
+        if ($this->cost_price == 0 || is_null($this->cost_price)) {
+            $this->cost_price = $calculatedCost;
         }
         
+        // Calculate margin percentage
+        $this->margin_percentage = $this->calculateMarginPercentage();
+        
         $this->save();
+    }
+
+    /**
+     * Calculate margin percentage
+     */
+    public function calculateMarginPercentage(): float
+    {
+        if ($this->base_price > 0 && $this->cost_price >= 0) {
+            return (($this->base_price - $this->cost_price) / $this->base_price) * 100;
+        }
+        
+        return 0;
+    }
+
+    /**
+     * Get margin in rupiah
+     */
+    public function getMarginAmount(): float
+    {
+        return $this->base_price - $this->cost_price;
     }
 
     /**

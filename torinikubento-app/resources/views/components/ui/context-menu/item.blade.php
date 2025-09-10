@@ -35,15 +35,8 @@ if ($disabled) {
 @endphp
 
 @if($href && !$disabled)
-    {{-- Link Item --}}
-    <a href="{{ $href }}" 
-       class="{{ $classes }}"
-       @if($onclick) onclick="{{ $onclick }}" @endif>
-        {{ $slot }}
-    </a>
-@elseif(!$disabled)
-    {{-- Button Item (for forms or actions) --}}
-    @if($method !== 'GET' && $href)
+    @if($method !== 'GET')
+        {{-- Form Item for non-GET methods --}}
         <form method="POST" action="{{ $href }}" class="w-full">
             @csrf
             @if($method !== 'POST')
@@ -51,19 +44,28 @@ if ($disabled) {
             @endif
             <button type="submit" 
                     class="{{ $classes }} w-full text-left"
-                    @if($onclick) onclick="{{ $onclick }}" @endif
-                    @if($confirm) onclick="return confirm('{{ $confirm }}')" @endif>
+                    @if($confirm) onclick="return confirm('{{ $confirm }}')" @endif
+                    @if($onclick) onclick="{{ $onclick }}" @endif>
                 {{ $slot }}
             </button>
         </form>
     @else
-        <button type="button" 
-                class="{{ $classes }} w-full text-left"
-                @if($onclick) onclick="{{ $onclick }}" @endif
-                @if($confirm) onclick="return confirm('{{ $confirm }}')" @endif>
+        {{-- Link Item for GET method --}}
+        <a href="{{ $href }}" 
+           class="{{ $classes }}"
+           @if($confirm) onclick="return confirm('{{ $confirm }}')" @endif
+           @if($onclick) onclick="{{ $onclick }}" @endif>
             {{ $slot }}
-        </button>
+        </a>
     @endif
+@elseif(!$disabled)
+    {{-- Button Item (for actions without href) --}}
+    <button type="button" 
+            class="{{ $classes }} w-full text-left"
+            @if($confirm) onclick="return confirm('{{ $confirm }}')" @endif
+            @if($onclick) onclick="{{ $onclick }}" @endif>
+        {{ $slot }}
+    </button>
 @else
     {{-- Disabled Item --}}
     <div class="{{ $classes }}">
