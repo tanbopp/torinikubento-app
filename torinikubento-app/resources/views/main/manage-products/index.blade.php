@@ -2,6 +2,41 @@
 
 @section('page-title', 'Manajemen Produk')
 
+@push('styles')
+<style>
+.sort-arrows {
+    display: flex;
+    flex-direction: column;
+    margin-left: 4px;
+}
+.sort-arrow {
+    height: 12px;
+    width: 12px;
+    transition: color 0.2s ease;
+}
+.sort-arrow.active {
+    color: #ea580c; /* orange-600 */
+}
+.sort-arrow.inactive {
+    color: #525252; /* neutral-600 */
+}
+.sortable-header {
+    user-select: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.sortable-header:hover .sort-arrow.inactive {
+    color: #737373; /* neutral-500 */
+}
+.sortable-header.active-sort {
+    color: #f3f4f6; /* neutral-100 */
+}
+.sortable-header.active-sort .sort-arrow.inactive {
+    color: #6b7280; /* neutral-500 */
+}
+</style>
+@endpush
+
 @section('main-content')
 <div class="p-6">
     {{-- Page Header --}}
@@ -54,7 +89,7 @@
         </div>
     @endif
 
-    {{-- Filters and Search --}}
+    {{-- Filters, Sort and Search --}}
     <div class="mb-6">
         <form method="GET" action="{{ route('products.index') }}">
             <div>
@@ -66,66 +101,85 @@
                                    name="search" 
                                    value="{{ request('search') }}"
                                    placeholder="Cari terkait produk..."
-                                   class="w-full bg-neutral-800 text-white placeholder-neutral-400 rounded-lg pl-10 pr-3 py-1.5 ring-1 ring-neutral-600 focus:ring-2 focus:ring-orange-500 outline-none transition-al2 text-sm">
+                                   class="w-full bg-neutral-800 text-white placeholder-neutral-400 rounded-lg pl-10 pr-3 py-1.5 ring-1 ring-neutral-600 focus:ring-[3px] focus:ring-orange-500/80 outline-none transition-al2 text-sm">
                             <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 text-sm"></i>
                         </div>
                     </div>
 
-                    {{-- Filter Menu --}}
-                    <div class="flex gap-2">
-                        {{-- Filter Context Menu --}}
-                        <x-ui.filter-menu 
-                            id="product-filters" 
-                            width="w-72"
-                            :hasActiveFilters="request()->hasAny(['category_id', 'status', 'availability', 'seasonal'])"
-                            filterTitle="Filter Produk"
-                            filterSubtitle="Pilih kategori dan status produk"
-                            :clearUrl="route('products.index')">
-                            {{-- Category Filter --}}
-                            <div class="px-4 py-3">
-                                <label class="block text-sm font-medium text-white mb-2">Kategori</label>
-                                <select name="category_id" class="w-full bg-neutral-700 text-white rounded-lg px-3 py-2 text-sm border border-neutral-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
-                                    <option value="">Semua Kategori</option>
-                                    @foreach($categories as $category)
-                                        <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
-                                            {{ $category->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                    <div class="flex gap-x-1">
+                        {{-- Sort Reset Button --}}
+                        @if(request()->has('sort') || request()->has('direction'))
+                        <a href="{{ route('products.index', array_diff_key(request()->all(), ['sort' => '', 'direction' => ''])) }}" 
+                           class="aspect-square h-8 flex justify-center items-center hover:bg-neutral-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap relative group" 
+                           title="Reset urutan">
+                            <svg class="h-4 text-orange-400 transition-colors group-hover:text-orange-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 8H21C21.6 8 22 7.6 22 7C22 6.4 21.6 6 21 6H3C2.4 6 2 6.4 2 7C2 7.6 2.4 8 3 8Z" fill="currentColor"/>
+                            <path d="M7 16H17C17.6 16 18 16.4 18 17C18 17.6 17.6 18 17 18H7C6.4 18 6 17.6 6 17C6 16.4 6.4 16 7 16Z" fill="currentColor"/>
+                            <path d="M4.8 11H19.2C19.68 11 20 11.4 20 12C20 12.6 19.68 13 19.2 13H4.8C4.32 13 4 12.6 4 12C4 11.4 4.32 11 4.8 11Z" fill="currentColor"/>
+                            </svg>
+                            {{-- Tooltip --}}
+                            <div class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-neutral-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                                Reset urutan
                             </div>
+                        </a>
+                        @endif
 
-                            <div class="border-t border-neutral-700/30 my-1"></div>
+                        {{-- Filter Menu --}}
+                        <div class="flex gap-2">
+                            {{-- Filter Context Menu --}}
+                            <x-ui.filter-menu 
+                                id="product-filters" 
+                                width="w-72"
+                                :hasActiveFilters="request()->hasAny(['category_id', 'status', 'availability', 'seasonal'])"
+                                filterTitle="Filter Produk"
+                                filterSubtitle="Pilih kategori dan status produk"
+                                :clearUrl="route('products.index')">
+                                {{-- Category Filter --}}
+                                <div class="px-4 py-3">
+                                    <label class="block text-sm font-medium text-white mb-2">Kategori</label>
+                                    <select name="category_id" class="w-full bg-neutral-700 text-white rounded-lg px-3 py-2 text-sm border border-neutral-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
+                                        <option value="">Semua Kategori</option>
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                                {{ $category->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                            {{-- Status Filter --}}
-                            <div class="px-4 py-3">
-                                <label class="block text-sm font-medium text-white mb-2">Status Produk</label>
-                                <select name="status" class="w-full bg-neutral-700 text-white rounded-lg px-3 py-2 text-sm border border-neutral-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
-                                    <option value="">Semua Status</option>
-                                    <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Aktif</option>
-                                    <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Nonaktif</option>
-                                </select>
-                            </div>
+                                <div class="border-t border-neutral-700/30 my-1"></div>
 
-                            {{-- Availability Filter --}}
-                            <div class="px-4 py-3">
-                                <label class="block text-sm font-medium text-white mb-2">Ketersediaan</label>
-                                <select name="availability" class="w-full bg-neutral-700 text-white rounded-lg px-3 py-2 text-sm border border-neutral-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
-                                    <option value="">Semua</option>
-                                    <option value="1" {{ request('availability') === '1' ? 'selected' : '' }}>Tersedia</option>
-                                    <option value="0" {{ request('availability') === '0' ? 'selected' : '' }}>Habis</option>
-                                </select>
-                            </div>
+                                {{-- Status Filter --}}
+                                <div class="px-4 py-3">
+                                    <label class="block text-sm font-medium text-white mb-2">Status Produk</label>
+                                    <select name="status" class="w-full bg-neutral-700 text-white rounded-lg px-3 py-2 text-sm border border-neutral-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
+                                        <option value="">Semua Status</option>
+                                        <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Aktif</option>
+                                        <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Nonaktif</option>
+                                    </select>
+                                </div>
 
-                            {{-- Seasonal Filter --}}
-                            <div class="px-4 py-3">
-                                <label class="block text-sm font-medium text-white mb-2">Tipe</label>
-                                <select name="seasonal" class="w-full bg-neutral-700 text-white rounded-lg px-3 py-2 text-sm border border-neutral-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
-                                    <option value="">Semua Tipe</option>
-                                    <option value="1" {{ request('seasonal') === '1' ? 'selected' : '' }}>Musiman</option>
-                                    <option value="0" {{ request('seasonal') === '0' ? 'selected' : '' }}>Reguler</option>
-                                </select>
-                            </div>
-                        </x-ui.filter-menu>
+                                {{-- Availability Filter --}}
+                                <div class="px-4 py-3">
+                                    <label class="block text-sm font-medium text-white mb-2">Ketersediaan</label>
+                                    <select name="availability" class="w-full bg-neutral-700 text-white rounded-lg px-3 py-2 text-sm border border-neutral-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
+                                        <option value="">Semua</option>
+                                        <option value="1" {{ request('availability') === '1' ? 'selected' : '' }}>Tersedia</option>
+                                        <option value="0" {{ request('availability') === '0' ? 'selected' : '' }}>Habis</option>
+                                    </select>
+                                </div>
+
+                                {{-- Seasonal Filter --}}
+                                <div class="px-4 py-3">
+                                    <label class="block text-sm font-medium text-white mb-2">Tipe</label>
+                                    <select name="seasonal" class="w-full bg-neutral-700 text-white rounded-lg px-3 py-2 text-sm border border-neutral-600 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none">
+                                        <option value="">Semua Tipe</option>
+                                        <option value="1" {{ request('seasonal') === '1' ? 'selected' : '' }}>Musiman</option>
+                                        <option value="0" {{ request('seasonal') === '0' ? 'selected' : '' }}>Reguler</option>
+                                    </select>
+                                </div>
+                            </x-ui.filter-menu>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -139,24 +193,84 @@
             <table class="w-full" id="productsTable">
                 <thead>
                     <tr class="text-left text-neutral-200 text-sm border-b border-neutral-800">
-                        <th class="px-4 py-2 font-normal text-neutral-400">Produk</th>
-                        <th class="px-4 py-2 font-normal text-neutral-400">Kategori</th>
-                        <th class="px-4 py-2 font-normal text-neutral-400">Harga</th>
+                        <th class="px-4 py-2">
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'name', 'direction' => request('sort') === 'name' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" 
+                               class="flex items-center text-neutral-400 hover:text-white transition-colors font-normal">
+                                <svg class="w-4 h-4 mr-2 {{ request('sort') === 'name' ? 'text-orange-500' : 'text-neutral-500' }}" 
+                                     viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.71 21.71L18.71 17.71C18.8032 17.6167 18.8772 17.5061 18.9277 17.3842C18.9781 17.2624 19.0041 17.1318 19.0041 17C19.0041 16.7337 18.8983 16.4783 18.71 16.29C18.5217 16.1017 18.2663 15.9959 18 15.9959C17.7337 15.9959 17.4783 16.1017 17.29 16.29L15 18.59V6.99999C15 6.73477 14.8946 6.48042 14.7071 6.29288C14.5196 6.10534 14.2652 5.99999 14 5.99999C13.7348 5.99999 13.4804 6.10534 13.2929 6.29288C13.1054 6.48042 13 6.73477 13 6.99999L13 21C13.001 21.1974 13.0604 21.3901 13.1707 21.5538C13.2811 21.7176 13.4374 21.845 13.62 21.92C13.8021 21.9966 14.0028 22.0175 14.1968 21.9801C14.3908 21.9427 14.5694 21.8487 14.71 21.71ZM11 17L11 2.99999C10.999 2.80256 10.9396 2.60985 10.8293 2.44613C10.7189 2.2824 10.5626 2.15501 10.38 2.07999C10.1979 2.00341 9.99717 1.98248 9.80318 2.01986C9.60919 2.05723 9.43062 2.15123 9.29 2.28999L5.29 6.28999C5.19627 6.38295 5.12187 6.49355 5.07111 6.61541C5.02034 6.73727 4.9942 6.86798 4.9942 6.99999C4.9942 7.132 5.02034 7.2627 5.07111 7.38456C5.12187 7.50642 5.19627 7.61702 5.29 7.70999C5.38296 7.80372 5.49356 7.87811 5.61542 7.92888C5.73728 7.97965 5.86799 8.00579 6 8.00579C6.13201 8.00579 6.26272 7.97965 6.38457 7.92888C6.50643 7.87811 6.61703 7.80372 6.71 7.70999L9 5.40999L9 17C9 17.2652 9.10535 17.5196 9.29289 17.7071C9.48043 17.8946 9.73478 18 10 18C10.2652 18 10.5196 17.8946 10.7071 17.7071C10.8946 17.5196 11 17.2652 11 17Z" 
+                                          fill="currentColor"/>
+                                </svg>
+                                <span>Produk</span>
+                            </a>
+                        </th>
+                        <th class="px-4 py-2">
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'category_id', 'direction' => request('sort') === 'category_id' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" 
+                               class="flex items-center text-neutral-400 hover:text-white transition-colors font-normal">
+                                <svg class="w-4 h-4 mr-2 {{ request('sort') === 'category_id' ? 'text-orange-500' : 'text-neutral-500' }}" 
+                                     viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.71 21.71L18.71 17.71C18.8032 17.6167 18.8772 17.5061 18.9277 17.3842C18.9781 17.2624 19.0041 17.1318 19.0041 17C19.0041 16.7337 18.8983 16.4783 18.71 16.29C18.5217 16.1017 18.2663 15.9959 18 15.9959C17.7337 15.9959 17.4783 16.1017 17.29 16.29L15 18.59V6.99999C15 6.73477 14.8946 6.48042 14.7071 6.29288C14.5196 6.10534 14.2652 5.99999 14 5.99999C13.7348 5.99999 13.4804 6.10534 13.2929 6.29288C13.1054 6.48042 13 6.73477 13 6.99999L13 21C13.001 21.1974 13.0604 21.3901 13.1707 21.5538C13.2811 21.7176 13.4374 21.845 13.62 21.92C13.8021 21.9966 14.0028 22.0175 14.1968 21.9801C14.3908 21.9427 14.5694 21.8487 14.71 21.71ZM11 17L11 2.99999C10.999 2.80256 10.9396 2.60985 10.8293 2.44613C10.7189 2.2824 10.5626 2.15501 10.38 2.07999C10.1979 2.00341 9.99717 1.98248 9.80318 2.01986C9.60919 2.05723 9.43062 2.15123 9.29 2.28999L5.29 6.28999C5.19627 6.38295 5.12187 6.49355 5.07111 6.61541C5.02034 6.73727 4.9942 6.86798 4.9942 6.99999C4.9942 7.132 5.02034 7.2627 5.07111 7.38456C5.12187 7.50642 5.19627 7.61702 5.29 7.70999C5.38296 7.80372 5.49356 7.87811 5.61542 7.92888C5.73728 7.97965 5.86799 8.00579 6 8.00579C6.13201 8.00579 6.26272 7.97965 6.38457 7.92888C6.50643 7.87811 6.61703 7.80372 6.71 7.70999L9 5.40999L9 17C9 17.2652 9.10535 17.5196 9.29289 17.7071C9.48043 17.8946 9.73478 18 10 18C10.2652 18 10.5196 17.8946 10.7071 17.7071C10.8946 17.5196 11 17.2652 11 17Z" 
+                                          fill="currentColor"/>
+                                </svg>
+                                <span>Kategori</span>
+                            </a>
+                        </th>
+                        <th class="px-4 py-2">
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'base_price', 'direction' => request('sort') === 'base_price' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" 
+                               class="flex items-center text-neutral-400 hover:text-white transition-colors font-normal">
+                                <svg class="w-4 h-4 mr-2 {{ request('sort') === 'base_price' ? 'text-orange-500' : 'text-neutral-500' }}" 
+                                     viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.71 21.71L18.71 17.71C18.8032 17.6167 18.8772 17.5061 18.9277 17.3842C18.9781 17.2624 19.0041 17.1318 19.0041 17C19.0041 16.7337 18.8983 16.4783 18.71 16.29C18.5217 16.1017 18.2663 15.9959 18 15.9959C17.7337 15.9959 17.4783 16.1017 17.29 16.29L15 18.59V6.99999C15 6.73477 14.8946 6.48042 14.7071 6.29288C14.5196 6.10534 14.2652 5.99999 14 5.99999C13.7348 5.99999 13.4804 6.10534 13.2929 6.29288C13.1054 6.48042 13 6.73477 13 6.99999L13 21C13.001 21.1974 13.0604 21.3901 13.1707 21.5538C13.2811 21.7176 13.4374 21.845 13.62 21.92C13.8021 21.9966 14.0028 22.0175 14.1968 21.9801C14.3908 21.9427 14.5694 21.8487 14.71 21.71ZM11 17L11 2.99999C10.999 2.80256 10.9396 2.60985 10.8293 2.44613C10.7189 2.2824 10.5626 2.15501 10.38 2.07999C10.1979 2.00341 9.99717 1.98248 9.80318 2.01986C9.60919 2.05723 9.43062 2.15123 9.29 2.28999L5.29 6.28999C5.19627 6.38295 5.12187 6.49355 5.07111 6.61541C5.02034 6.73727 4.9942 6.86798 4.9942 6.99999C4.9942 7.132 5.02034 7.2627 5.07111 7.38456C5.12187 7.50642 5.19627 7.61702 5.29 7.70999C5.38296 7.80372 5.49356 7.87811 5.61542 7.92888C5.73728 7.97965 5.86799 8.00579 6 8.00579C6.13201 8.00579 6.26272 7.97965 6.38457 7.92888C6.50643 7.87811 6.61703 7.80372 6.71 7.70999L9 5.40999L9 17C9 17.2652 9.10535 17.5196 9.29289 17.7071C9.48043 17.8946 9.73478 18 10 18C10.2652 18 10.5196 17.8946 10.7071 17.7071C10.8946 17.5196 11 17.2652 11 17Z" 
+                                          fill="currentColor"/>
+                                </svg>
+                                <span>Harga</span>
+                            </a>
+                        </th>
                         @if(Auth::user()->role->hasPermission('view_cost_analysis'))
-                        <th class="px-4 py-2 font-normal text-neutral-400">Biaya/Margin</th>
+                        <th class="px-4 py-2">
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'cost_price', 'direction' => request('sort') === 'cost_price' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" 
+                               class="flex items-center text-neutral-400 hover:text-white transition-colors font-normal">
+                                <svg class="w-4 h-4 mr-2 {{ request('sort') === 'cost_price' ? 'text-orange-500' : 'text-neutral-500' }}" 
+                                     viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.71 21.71L18.71 17.71C18.8032 17.6167 18.8772 17.5061 18.9277 17.3842C18.9781 17.2624 19.0041 17.1318 19.0041 17C19.0041 16.7337 18.8983 16.4783 18.71 16.29C18.5217 16.1017 18.2663 15.9959 18 15.9959C17.7337 15.9959 17.4783 16.1017 17.29 16.29L15 18.59V6.99999C15 6.73477 14.8946 6.48042 14.7071 6.29288C14.5196 6.10534 14.2652 5.99999 14 5.99999C13.7348 5.99999 13.4804 6.10534 13.2929 6.29288C13.1054 6.48042 13 6.73477 13 6.99999L13 21C13.001 21.1974 13.0604 21.3901 13.1707 21.5538C13.2811 21.7176 13.4374 21.845 13.62 21.92C13.8021 21.9966 14.0028 22.0175 14.1968 21.9801C14.3908 21.9427 14.5694 21.8487 14.71 21.71ZM11 17L11 2.99999C10.999 2.80256 10.9396 2.60985 10.8293 2.44613C10.7189 2.2824 10.5626 2.15501 10.38 2.07999C10.1979 2.00341 9.99717 1.98248 9.80318 2.01986C9.60919 2.05723 9.43062 2.15123 9.29 2.28999L5.29 6.28999C5.19627 6.38295 5.12187 6.49355 5.07111 6.61541C5.02034 6.73727 4.9942 6.86798 4.9942 6.99999C4.9942 7.132 5.02034 7.2627 5.07111 7.38456C5.12187 7.50642 5.19627 7.61702 5.29 7.70999C5.38296 7.80372 5.49356 7.87811 5.61542 7.92888C5.73728 7.97965 5.86799 8.00579 6 8.00579C6.13201 8.00579 6.26272 7.97965 6.38457 7.92888C6.50643 7.87811 6.61703 7.80372 6.71 7.70999L9 5.40999L9 17C9 17.2652 9.10535 17.5196 9.29289 17.7071C9.48043 17.8946 9.73478 18 10 18C10.2652 18 10.5196 17.8946 10.7071 17.7071C10.8946 17.5196 11 17.2652 11 17Z" 
+                                          fill="currentColor"/>
+                                </svg>
+                                <span>Biaya/Margin</span>
+                            </a>
+                        </th>
                         @endif
                         @if($columnVisibility['has_inactive_products'] || $columnVisibility['has_unavailable_products'])
-                        <th class="px-4 py-2 font-normal text-neutral-400">Status</th>
+                        <th class="px-4 py-2">
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'is_active', 'direction' => request('sort') === 'is_active' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" 
+                               class="flex items-center text-neutral-400 hover:text-white transition-colors font-normal">
+                                <svg class="w-4 h-4 mr-2 {{ request('sort') === 'is_active' ? 'text-orange-500' : 'text-neutral-500' }}" 
+                                     viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.71 21.71L18.71 17.71C18.8032 17.6167 18.8772 17.5061 18.9277 17.3842C18.9781 17.2624 19.0041 17.1318 19.0041 17C19.0041 16.7337 18.8983 16.4783 18.71 16.29C18.5217 16.1017 18.2663 15.9959 18 15.9959C17.7337 15.9959 17.4783 16.1017 17.29 16.29L15 18.59V6.99999C15 6.73477 14.8946 6.48042 14.7071 6.29288C14.5196 6.10534 14.2652 5.99999 14 5.99999C13.7348 5.99999 13.4804 6.10534 13.2929 6.29288C13.1054 6.48042 13 6.73477 13 6.99999L13 21C13.001 21.1974 13.0604 21.3901 13.1707 21.5538C13.2811 21.7176 13.4374 21.845 13.62 21.92C13.8021 21.9966 14.0028 22.0175 14.1968 21.9801C14.3908 21.9427 14.5694 21.8487 14.71 21.71ZM11 17L11 2.99999C10.999 2.80256 10.9396 2.60985 10.8293 2.44613C10.7189 2.2824 10.5626 2.15501 10.38 2.07999C10.1979 2.00341 9.99717 1.98248 9.80318 2.01986C9.60919 2.05723 9.43062 2.15123 9.29 2.28999L5.29 6.28999C5.19627 6.38295 5.12187 6.49355 5.07111 6.61541C5.02034 6.73727 4.9942 6.86798 4.9942 6.99999C4.9942 7.132 5.02034 7.2627 5.07111 7.38456C5.12187 7.50642 5.19627 7.61702 5.29 7.70999C5.38296 7.80372 5.49356 7.87811 5.61542 7.92888C5.73728 7.97965 5.86799 8.00579 6 8.00579C6.13201 8.00579 6.26272 7.97965 6.38457 7.92888C6.50643 7.87811 6.61703 7.80372 6.71 7.70999L9 5.40999L9 17C9 17.2652 9.10535 17.5196 9.29289 17.7071C9.48043 17.8946 9.73478 18 10 18C10.2652 18 10.5196 17.8946 10.7071 17.7071C10.8946 17.5196 11 17.2652 11 17Z" 
+                                          fill="currentColor"/>
+                                </svg>
+                                <span>Status</span>
+                            </a>
+                        </th>
                         @endif
                         @if($columnVisibility['has_seasonal_products'] || $columnVisibility['has_limited_products'] || $columnVisibility['has_daily_limits'])
-                        <th class="px-4 py-2 font-normal text-neutral-400">Tipe</th>
+                        <th class="px-4 py-2">
+                            <a href="{{ route('products.index', array_merge(request()->all(), ['sort' => 'is_seasonal', 'direction' => request('sort') === 'is_seasonal' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}" 
+                               class="flex items-center text-neutral-400 hover:text-white transition-colors font-normal">
+                                <svg class="w-4 h-4 mr-2 {{ request('sort') === 'is_seasonal' ? 'text-orange-500' : 'text-neutral-500' }}" 
+                                     viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.71 21.71L18.71 17.71C18.8032 17.6167 18.8772 17.5061 18.9277 17.3842C18.9781 17.2624 19.0041 17.1318 19.0041 17C19.0041 16.7337 18.8983 16.4783 18.71 16.29C18.5217 16.1017 18.2663 15.9959 18 15.9959C17.7337 15.9959 17.4783 16.1017 17.29 16.29L15 18.59V6.99999C15 6.73477 14.8946 6.48042 14.7071 6.29288C14.5196 6.10534 14.2652 5.99999 14 5.99999C13.7348 5.99999 13.4804 6.10534 13.2929 6.29288C13.1054 6.48042 13 6.73477 13 6.99999L13 21C13.001 21.1974 13.0604 21.3901 13.1707 21.5538C13.2811 21.7176 13.4374 21.845 13.62 21.92C13.8021 21.9966 14.0028 22.0175 14.1968 21.9801C14.3908 21.9427 14.5694 21.8487 14.71 21.71ZM11 17L11 2.99999C10.999 2.80256 10.9396 2.60985 10.8293 2.44613C10.7189 2.2824 10.5626 2.15501 10.38 2.07999C10.1979 2.00341 9.99717 1.98248 9.80318 2.01986C9.60919 2.05723 9.43062 2.15123 9.29 2.28999L5.29 6.28999C5.19627 6.38295 5.12187 6.49355 5.07111 6.61541C5.02034 6.73727 4.9942 6.86798 4.9942 6.99999C4.9942 7.132 5.02034 7.2627 5.07111 7.38456C5.12187 7.50642 5.19627 7.61702 5.29 7.70999C5.38296 7.80372 5.49356 7.87811 5.61542 7.92888C5.73728 7.97965 5.86799 8.00579 6 8.00579C6.13201 8.00579 6.26272 7.97965 6.38457 7.92888C6.50643 7.87811 6.61703 7.80372 6.71 7.70999L9 5.40999L9 17C9 17.2652 9.10535 17.5196 9.29289 17.7071C9.48043 17.8946 9.73478 18 10 18C10.2652 18 10.5196 17.8946 10.7071 17.7071C10.8946 17.5196 11 17.2652 11 17Z" 
+                                          fill="currentColor"/>
+                                </svg>
+                                <span>Tipe</span>
+                            </a>
+                        </th>
                         @endif
                         <th class="px-4 py-2 font-normal text-neutral-400">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-700/30">
                     @foreach($products as $product)
-                    <tr class="hover:bg-neutral-700/20 product-row cursor-pointer transition-colors duration-200" 
+                    <tr class="hover:bg-neutral-700/20 product-row cursor-pointer" 
                         data-category="{{ $product->category->name }}"
                         data-status="{{ $product->is_active ? 'active' : 'inactive' }}"
                         data-availability="{{ $product->is_available ? 'available' : 'unavailable' }}"
@@ -333,11 +447,33 @@
         {{-- Pagination --}}
         <div class="flex items-center justify-between mt-6 px-4">
             <div class="text-sm text-neutral-400">
-                Menampilkan {{ $products->firstItem() ?? 0 }} sampai {{ $products->lastItem() ?? 0 }} 
-                dari {{ $products->total() }} produk
+                <div>
+                    Menampilkan {{ $products->firstItem() ?? 0 }} sampai {{ $products->lastItem() ?? 0 }} 
+                    dari {{ $products->total() }} produk
+                </div>
+                @if(request()->has('sort') && request('sort') !== 'sort_order')
+                <div class="mt-1 text-xs">
+                    @php
+                        $sortLabels = [
+                            'name' => 'Produk',
+                            'category_id' => 'Kategori', 
+                            'base_price' => 'Harga',
+                            'cost_price' => 'Biaya',
+                            'is_active' => 'Status',
+                            'is_seasonal' => 'Tipe'
+                        ];
+                        $sortLabel = $sortLabels[request('sort')] ?? request('sort');
+                        $directionLabel = request('direction') === 'desc' ? 'Z-A' : 'A-Z';
+                        if(in_array(request('sort'), ['base_price', 'cost_price'])) {
+                            $directionLabel = request('direction') === 'desc' ? 'Tinggi-Rendah' : 'Rendah-Tinggi';
+                        }
+                    @endphp
+                    <span class="text-orange-400">Urutan: {{ $sortLabel }} ({{ $directionLabel }})</span>
+                </div>
+                @endif
             </div>
             <div class="flex items-center space-x-2">
-                {{ $products->links() }}
+                {{ $products->appends(request()->query())->links() }}
             </div>
         </div>
         @else

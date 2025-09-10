@@ -26,7 +26,30 @@ class ProductController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $products = Product::with(['category', 'tax', 'variants', 'ingredients'])
+        // Sortable columns mapping
+        $sortableColumns = [
+            'name' => 'name',
+            'category_id' => 'category_id',
+            'base_price' => 'base_price',
+            'cost_price' => 'cost_price',
+            'is_active' => 'is_active',
+            'is_available' => 'is_available',
+            'is_seasonal' => 'is_seasonal',
+            'created_at' => 'created_at'
+        ];
+
+        $sort = $request->get('sort', 'sort_order');
+        $direction = $request->get('direction', 'asc');
+
+        // Validate sort column and direction
+        if (!array_key_exists($sort, $sortableColumns)) {
+            $sort = 'sort_order';
+        }
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = 'asc';
+        }
+
+        $query = Product::with(['category', 'tax', 'variants', 'ingredients'])
             ->when($request->search, function($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('name_japanese', 'like', "%{$search}%");
@@ -42,10 +65,25 @@ class ProductController extends Controller
             })
             ->when($request->seasonal !== null, function($query) use ($request) {
                 $query->where('is_seasonal', $request->seasonal);
-            })
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->paginate(20);
+            });
+
+        // Apply sorting
+        if ($sort === 'category_id') {
+            $query->join('categories', 'products.category_id', '=', 'categories.id')
+                  ->orderBy('categories.name', $direction)
+                  ->select('products.*');
+        } else if ($sort === 'sort_order') {
+            $query->orderBy('sort_order', 'asc')->orderBy('name', 'asc');
+        } else {
+            $query->orderBy($sortableColumns[$sort], $direction);
+            
+            // Add secondary sort for consistency
+            if ($sort !== 'name') {
+                $query->orderBy('name', 'asc');
+            }
+        }
+
+        $products = $query->paginate(20);
 
         $categories = Category::active()->ordered()->get();
 

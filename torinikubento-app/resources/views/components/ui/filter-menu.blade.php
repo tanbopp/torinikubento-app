@@ -23,7 +23,7 @@
     <button type="button" 
             onclick="toggleFilterMenu('{{ $id }}')"
             class="aspect-square h-8 flex justify-center items-center hover:bg-neutral-700 text-white rounded-lg transition-colors text-sm font-medium whitespace-nowrap flex items-center space-x-2 relative">
-        <svg class="{{ $buttonIcon }} h-4 {{ $hasActiveFilters ? 'text-orange-400' : 'text-white' }} transition-colors" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="{{ $buttonIcon }} h-4 {{ $hasActiveFilters ? 'text-orange-400' : 'text-neutral-400' }} transition-colors" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M6.5 7C6.5 6.17157 5.82843 5.5 5 5.5C4.17157 5.5 3.5 6.17157 3.5 7C3.5 7.82843 4.17157 8.5 5 8.5C5.82843 8.5 6.5 7.82843 6.5 7ZM8.5 7C8.5 8.933 6.933 10.5 5 10.5C3.067 10.5 1.5 8.933 1.5 7C1.5 5.067 3.067 3.5 5 3.5C6.933 3.5 8.5 5.067 8.5 7Z" fill="currentColor"/>
         <path d="M21.5 6C22.0523 6 22.5 6.44772 22.5 7C22.5 7.55228 22.0523 8 21.5 8H11.5C10.9477 8 10.5 7.55228 10.5 7C10.5 6.44772 10.9477 6 11.5 6H21.5Z" fill="currentColor"/>
         <path d="M17.5 17C17.5 16.1716 18.1716 15.5 19 15.5C19.8284 15.5 20.5 16.1716 20.5 17C20.5 17.8284 19.8284 18.5 19 18.5C18.1716 18.5 17.5 17.8284 17.5 17ZM15.5 17C15.5 18.933 17.067 20.5 19 20.5C20.933 20.5 22.5 18.933 22.5 17C22.5 15.067 20.933 13.5 19 13.5C17.067 13.5 15.5 15.067 15.5 17Z" fill="currentColor"/>
