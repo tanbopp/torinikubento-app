@@ -481,7 +481,7 @@
             <i class="fas fa-utensils text-6xl text-neutral-600 mb-4"></i>
             <p class="text-xl text-neutral-400 mb-4">Belum ada produk</p>
             @if(Auth::user()->role->hasPermission('create_products'))
-            <a href="{{ route('products.create') }}" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg transition-colors inline-flex items-center space-x-2">
+            <a href="{{ route('products.create') }}" class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded-lg transition-colors inline-flex items-center space-x-2">
                 <i class="fas fa-plus"></i>
                 <span>Tambah Produk Pertama</span>
             </a>
