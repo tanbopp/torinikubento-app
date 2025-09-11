@@ -1,6 +1,6 @@
 @extends('partials.layouts.main')
 
-@section('content')
+@section('main-content')
 <div class="min-h-screen bg-neutral-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->

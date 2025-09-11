@@ -6,7 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Ingredient;
 use App\Models\Addon;
-use App\Models\Tax;
+use App\Models\OtherCost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +49,7 @@ class ProductController extends Controller
             $direction = 'asc';
         }
 
-        $query = Product::with(['category', 'tax', 'variants', 'ingredients'])
+        $query = Product::with(['category', 'variants', 'ingredients', 'otherCosts'])
             ->when($request->search, function($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('name_japanese', 'like', "%{$search}%");
@@ -134,9 +134,9 @@ class ProductController extends Controller
         $categories = Category::active()->ordered()->get();
         $ingredients = Ingredient::active()->orderBy('name')->get();
         $addons = Addon::active()->orderBy('name')->get();
-        $taxes = Tax::active()->orderBy('name')->get();
+        $otherCosts = OtherCost::active()->orderBy('name')->get();
 
-        return view('main.manage-products.create', compact('categories', 'ingredients', 'addons', 'taxes'));
+        return view('main.manage-products.create', compact('categories', 'ingredients', 'addons', 'otherCosts'));
     }
 
     /**
@@ -159,7 +159,6 @@ class ProductController extends Controller
             'cropped_image' => 'nullable|string', // Base64 data dari cropper
             'base_price' => 'required|numeric|min:0',
             'promo_price' => 'nullable|numeric|min:0',
-            'cost_price' => 'nullable|numeric|min:0',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
             'is_available' => 'boolean',
@@ -171,7 +170,10 @@ class ProductController extends Controller
             'season_start_date' => 'nullable|date',
             'season_end_date' => 'nullable|date|after:season_start_date',
             'nutritional_info' => 'nullable|array',
-            'tax_id' => 'nullable|exists:taxes,id',
+            'other_costs' => 'nullable|array',
+            'other_costs.*' => 'exists:other_costs,id',
+            'other_cost_values' => 'nullable|array',
+            'other_cost_values.*' => 'nullable|numeric|min:0',
             'ingredients' => 'nullable|array',
             'ingredients.*.ingredient_id' => 'required_with:ingredients|exists:ingredients,id',
             'ingredients.*.quantity' => 'required_with:ingredients|numeric|min:0.01',
@@ -226,14 +228,18 @@ class ProductController extends Controller
                 $product->addons()->attach($request->addons);
             }
 
-            // Update cost price and margin
-            if (!$request->filled('cost_price') || $request->cost_price == 0) {
-                $product->updateCostPrice();
-            } else {
-                // Manual cost price, hitung margin saja
-                $product->margin_percentage = $product->calculateMarginPercentage();
-                $product->save();
+            // Attach other costs
+            if ($request->has('other_costs')) {
+                foreach ($request->other_costs as $index => $otherCostId) {
+                    $customValue = $request->other_cost_values[$index] ?? null;
+                    $product->otherCosts()->attach($otherCostId, [
+                        'custom_value' => $customValue
+                    ]);
+                }
             }
+
+            // Update cost price and margin - always auto-calculate from BOM and other costs
+            $product->recalculateCostPrice();
 
             DB::commit();
 
@@ -293,11 +299,11 @@ class ProductController extends Controller
         $categories = Category::active()->ordered()->get();
         $ingredients = Ingredient::active()->orderBy('name')->get();
         $addons = Addon::active()->orderBy('name')->get();
-        $taxes = Tax::active()->orderBy('name')->get();
+        $otherCosts = OtherCost::active()->orderBy('name')->get();
 
-        $product->load(['ingredients', 'addons', 'variants', 'tax']);
+        $product->load(['ingredients', 'addons', 'variants', 'otherCosts']);
 
-        return view('main.manage-products.edit', compact('product', 'categories', 'ingredients', 'addons', 'taxes'));
+        return view('main.manage-products.edit', compact('product', 'categories', 'ingredients', 'addons', 'otherCosts'));
     }
 
     /**
@@ -321,7 +327,6 @@ class ProductController extends Controller
             'remove_image' => 'nullable|boolean', // Checkbox untuk hapus gambar
             'base_price' => 'required|numeric|min:0',
             'promo_price' => 'nullable|numeric|min:0',
-            'cost_price' => 'nullable|numeric|min:0',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
             'is_available' => 'boolean',
@@ -333,7 +338,10 @@ class ProductController extends Controller
             'season_start_date' => 'nullable|date',
             'season_end_date' => 'nullable|date|after:season_start_date',
             'nutritional_info' => 'nullable|array',
-            'tax_id' => 'nullable|exists:taxes,id',
+            'other_costs' => 'nullable|array',
+            'other_costs.*' => 'exists:other_costs,id',
+            'other_cost_values' => 'nullable|array',
+            'other_cost_values.*' => 'nullable|numeric|min:0',
             'ingredients' => 'nullable|array',
             'ingredients.*.ingredient_id' => 'required_with:ingredients|exists:ingredients,id',
             'ingredients.*.quantity' => 'required_with:ingredients|numeric|min:0.01',
@@ -411,14 +419,22 @@ class ProductController extends Controller
                 $product->addons()->detach();
             }
 
-            // Update cost price and margin
-            if (!$request->filled('cost_price') || $request->cost_price == 0) {
-                $product->updateCostPrice();
+            // Sync other costs
+            if ($request->has('other_costs')) {
+                $otherCostSync = [];
+                foreach ($request->other_costs as $index => $otherCostId) {
+                    $customValue = $request->other_cost_values[$index] ?? null;
+                    $otherCostSync[$otherCostId] = [
+                        'custom_value' => $customValue
+                    ];
+                }
+                $product->otherCosts()->sync($otherCostSync);
             } else {
-                // Manual cost price, hitung margin saja
-                $product->margin_percentage = $product->calculateMarginPercentage();
-                $product->save();
+                $product->otherCosts()->detach();
             }
+
+            // Update cost price and margin - always auto-calculate from BOM and other costs
+            $product->recalculateCostPrice();
 
             DB::commit();
 

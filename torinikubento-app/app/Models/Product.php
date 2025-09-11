@@ -14,7 +14,6 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
-        'tax_id',
         'name',
         'name_japanese',
         'description',
@@ -67,11 +66,13 @@ class Product extends Model
     }
 
     /**
-     * Get the tax of this product
+     * Get the other costs associated with this product
      */
-    public function tax(): BelongsTo
+    public function otherCosts(): BelongsToMany
     {
-        return $this->belongsTo(Tax::class);
+        return $this->belongsToMany(OtherCost::class, 'product_other_costs')
+                    ->withPivot('custom_value')
+                    ->withTimestamps();
     }
 
     /**
@@ -204,23 +205,71 @@ class Product extends Model
         return $totalCost;
     }
 
-        /**
-     * Update cost price based on current ingredients
+    /**
+     * Calculate total other costs for this product
+     */
+    public function calculateOtherCosts(): float
+    {
+        $totalOtherCosts = 0;
+        $ingredientCost = $this->calculateFoodCost();
+
+        foreach ($this->otherCosts as $otherCost) {
+            $costValue = $otherCost->pivot->custom_value ?? $otherCost->value;
+            
+            if ($otherCost->type === OtherCost::TYPE_PERCENTAGE) {
+                $totalOtherCosts += $ingredientCost * ($costValue / 100);
+            } else {
+                $totalOtherCosts += $costValue;
+            }
+        }
+
+        return $totalOtherCosts;
+    }
+
+    /**
+     * Update cost price based on current ingredients and other costs
      */
     public function updateCostPrice(): void
     {
-        // Calculate food cost from ingredients
-        $calculatedCost = $this->calculateFoodCost();
+        // Calculate food cost from ingredients - always auto-calculate from BOM
+        $ingredientCost = $this->calculateFoodCost();
         
-        // Use calculated cost if current cost_price is 0 or null
-        if ($this->cost_price == 0 || is_null($this->cost_price)) {
-            $this->cost_price = $calculatedCost;
+        // Calculate other costs
+        $otherCosts = $this->calculateOtherCosts();
+        
+        // Total cost price = ingredient cost + other costs
+        $this->cost_price = $ingredientCost + $otherCosts;
+        
+        // Auto-update base_price if not manually set
+        if ($this->base_price == 0 || $this->shouldAutoUpdateSellingPrice()) {
+            $this->base_price = $this->cost_price;
         }
         
         // Calculate margin percentage
         $this->margin_percentage = $this->calculateMarginPercentage();
         
         $this->save();
+    }
+
+    /**
+     * Check if selling price should be auto-updated
+     * This returns true if the user hasn't manually set a selling price
+     */
+    protected function shouldAutoUpdateSellingPrice(): bool
+    {
+        // If base_price equals the previous cost_price, it means it was auto-set
+        // and user hasn't manually changed it
+        $originalCostPrice = $this->getOriginal('cost_price') ?? 0;
+        return $this->base_price == $originalCostPrice;
+    }
+
+    /**
+     * Auto update cost price whenever ingredients are attached/detached
+     */
+    public function recalculateCostPrice(): void
+    {
+        $this->refresh(); // Refresh model to get latest ingredient relationships
+        $this->updateCostPrice();
     }
 
     /**

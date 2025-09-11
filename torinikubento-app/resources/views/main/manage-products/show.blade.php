@@ -101,7 +101,7 @@
                         {{-- Base Price --}}
                         <div class="text-center">
                             <div class="p-4 bg-neutral-700 rounded-lg">
-                                <h4 class="text-sm text-neutral-300 mb-2">Harga Dasar</h4>
+                                <h4 class="text-sm text-neutral-300 mb-2">Harga Jual</h4>
                                 <p class="text-2xl font-bold text-white">Rp {{ number_format($product->base_price, 0, ',', '.') }}</p>
                             </div>
                         </div>
@@ -123,7 +123,7 @@
                         @if(Auth::user()->role->hasPermission('view_cost_analysis'))
                         <div class="text-center">
                             <div class="p-4 bg-neutral-700 rounded-lg">
-                                <h4 class="text-sm text-neutral-300 mb-2">HPP</h4>
+                                <h4 class="text-sm text-neutral-300 mb-2">Harga Pokok</h4>
                                 <p class="text-lg font-bold text-white">Rp {{ number_format($product->cost_price, 0, ',', '.') }}</p>
                                 <p class="text-xs text-{{ $product->margin_percentage > 30 ? 'green' : ($product->margin_percentage > 15 ? 'yellow' : 'red') }}-400 mt-1">
                                     {{ number_format($product->margin_percentage, 1) }}% margin

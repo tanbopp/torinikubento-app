@@ -100,26 +100,57 @@
                                 @enderror
                             </div>
 
-                            {{-- Tax --}}
+                            {{-- Other Costs (Biaya Lain) --}}
                             <div>
                                 <label class="block text-sm font-medium text-neutral-300 mb-2">
-                                    Pajak
+                                    Biaya Lain
                                 </label>
-                                <select name="tax_id" class="w-full bg-neutral-700 border border-neutral-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 @error('tax_id') border-red-500 @enderror">
-                                    <option value="">Tanpa Pajak</option>
-                                    @foreach($taxes as $tax)
-                                    <option value="{{ $tax->id }}" {{ old('tax_id') == $tax->id ? 'selected' : '' }}>
-                                        {{ $tax->name }} 
-                                        @if($tax->type === 'percentage')
-                                            ({{ $tax->rate }}%)
+                                <div class="space-y-2">
+                                    @foreach($otherCosts as $otherCost)
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" 
+                                               name="other_costs[]" 
+                                               value="{{ $otherCost->id }}"
+                                               id="other_cost_{{ $otherCost->id }}"
+                                               data-type="{{ $otherCost->type }}"
+                                               {{ collect(old('other_costs'))->contains($otherCost->id) ? 'checked' : '' }}
+                                               class="rounded border-neutral-600 bg-neutral-700 text-orange-500 focus:ring-orange-500">
+                                        <label for="other_cost_{{ $otherCost->id }}" class="text-sm text-neutral-300 flex-1">
+                                            {{ $otherCost->name }} 
+                                            @if($otherCost->type === 'percentage')
+                                                ({{ number_format($otherCost->value, 2) }}%)
+                                            @else
+                                                (Rp {{ number_format($otherCost->value, 0, ',', '.') }})
+                                            @endif
+                                        </label>
+                                        @if($otherCost->type === 'percentage')
+                                            <div class="relative w-24">
+                                                <input type="number" 
+                                                       name="other_cost_values[]" 
+                                                       value="{{ old('other_cost_values.' . $loop->index) ?? number_format($otherCost->value, 2, '.', '') }}"
+                                                       placeholder="{{ number_format($otherCost->value, 2, '.', '') }}"
+                                                       step="0.01"
+                                                       min="0"
+                                                       max="100"
+                                                       class="w-full bg-neutral-700 border border-neutral-600 rounded px-2 py-1 pr-6 text-sm text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                                <span class="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-neutral-400">%</span>
+                                            </div>
                                         @else
-                                            (Rp {{ number_format($tax->rate, 0, ',', '.') }})
+                                            <input type="number" 
+                                                   name="other_cost_values[]" 
+                                                   value="{{ old('other_cost_values.' . $loop->index) ?? number_format($otherCost->value, 0, '.', '') }}"
+                                                   placeholder="{{ number_format($otherCost->value, 0, '.', '') }}"
+                                                   step="1000"
+                                                   min="0"
+                                                   class="w-24 bg-neutral-700 border border-neutral-600 rounded px-2 py-1 text-sm text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-orange-500">
                                         @endif
-                                        {{ $tax->is_inclusive ? ' - Sudah Termasuk' : ' - Belum Termasuk' }}
-                                    </option>
+                                    </div>
                                     @endforeach
-                                </select>
-                                @error('tax_id')
+                                    @if($otherCosts->isEmpty())
+                                        <p class="text-sm text-neutral-400">Belum ada biaya lain yang tersedia.</p>
+                                    @endif
+                                </div>
+                                @error('other_costs')
                                     <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -149,10 +180,10 @@
                     </div>
                     <div class="p-6 space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {{-- Base Price --}}
+                            {{-- Selling Price --}}
                             <div>
                                 <label class="block text-sm font-medium text-neutral-300 mb-2">
-                                    Harga Dasar <span class="text-red-400">*</span>
+                                    Harga Jual <span class="text-red-400">*</span>
                                 </label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">Rp</span>
@@ -172,19 +203,20 @@
                             {{-- Cost Price --}}
                             <div>
                                 <label class="block text-sm font-medium text-neutral-300 mb-2">
-                                    Harga Pokok (HPP)
+                                    Harga Pokok <span class="text-xs text-neutral-500">(Auto Calculated)</span>
                                 </label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">Rp</span>
                                     <input type="number" 
-                                           name="cost_price" 
-                                           value="{{ old('cost_price', 0) }}"
-                                           min="0"
-                                           step="500"
-                                           placeholder="15000"
-                                           class="w-full bg-neutral-700 border border-neutral-600 rounded-lg pl-10 pr-3 py-2 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                           name="cost_price_display" 
+                                           value="0"
+                                           readonly
+                                           disabled
+                                           placeholder="Akan dihitung otomatis"
+                                           class="w-full bg-neutral-600 border border-neutral-500 rounded-lg pl-10 pr-3 py-2 text-neutral-400 placeholder-neutral-500 cursor-not-allowed">
+                                    <input type="hidden" name="cost_price" value="0">
                                 </div>
-                                <p class="mt-1 text-xs text-neutral-400">Akan dihitung otomatis dari BOM jika kosong</p>
+                                <p class="mt-1 text-xs text-neutral-400">Dihitung otomatis dari total biaya bahan baku (BOM)</p>
                             </div>
 
                             {{-- Promo Price --}}
@@ -203,6 +235,117 @@
                                            class="w-full bg-neutral-700 border border-neutral-600 rounded-lg pl-10 pr-3 py-2 text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-orange-500">
                                 </div>
                                 <p class="mt-1 text-xs text-neutral-400">Kosongkan jika tidak ada promo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- BOM (Bill of Materials) --}}
+                <div class="bg-neutral-800 rounded-lg border border-neutral-700">
+                    <div class="p-6 border-b border-neutral-700">
+                        <h3 class="text-lg font-semibold text-white">Bill of Materials (BOM)</h3>
+                        <p class="text-sm text-neutral-400 mt-1">Tentukan bahan baku dan komposisi untuk produk ini</p>
+                    </div>
+                    <div class="p-6">
+                        {{-- Add Ingredient Button --}}
+                        <div class="mb-4">
+                            <button type="button" 
+                                    onclick="addIngredientRow()"
+                                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                                <i class="fas fa-plus text-sm"></i>
+                                <span>Tambah Bahan Baku</span>
+                            </button>
+                        </div>
+
+                        {{-- Ingredients List --}}
+                        <div id="ingredients-container" class="space-y-4">
+                            {{-- Template akan ditambahkan via JavaScript --}}
+                        </div>
+
+                        {{-- Total Cost Display --}}
+                        <div class="mt-6 p-4 bg-neutral-700 rounded-lg border border-neutral-600">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-neutral-300">Total Biaya Bahan Baku:</span>
+                                <div class="text-lg font-bold text-orange-400">
+                                    Rp <span id="total-cost-display">0</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-xs text-neutral-400">Harga Pokok (auto-calculated):</span>
+                                <div class="text-sm font-semibold text-neutral-300">
+                                    Rp <span id="cost-price-display">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Template untuk ingredient row (hidden) --}}
+                        <div id="ingredient-row-template" class="hidden">
+                            <div class="ingredient-row bg-neutral-700 rounded-lg p-4 border border-neutral-600">
+                                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                                    {{-- Ingredient Selection --}}
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-medium text-neutral-300 mb-2">Bahan Baku</label>
+                                        <select name="ingredients[INDEX][ingredient_id]" class="ingredient-select w-full bg-neutral-600 border border-neutral-500 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500" onchange="updateIngredientInfo(this)">
+                                            <option value="">Pilih Bahan Baku</option>
+                                            @foreach($ingredients as $ingredient)
+                                            <option value="{{ $ingredient->id }}" 
+                                                    data-unit="{{ $ingredient->unit }}" 
+                                                    data-cost="{{ $ingredient->cost_per_unit }}"
+                                                    data-stock="{{ $ingredient->stock_quantity }}">
+                                                {{ $ingredient->name }}
+                                                @if($ingredient->name_japanese) ({{ $ingredient->name_japanese }}) @endif
+                                                - Rp {{ number_format($ingredient->cost_per_unit, 0, ',', '.') }}/{{ $ingredient->unit }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    {{-- Quantity --}}
+                                    <div>
+                                        <label class="block text-sm font-medium text-neutral-300 mb-2">Jumlah</label>
+                                        <input type="number" 
+                                               name="ingredients[INDEX][quantity]" 
+                                               class="quantity-input w-full bg-neutral-600 border border-neutral-500 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                               min="0.01" 
+                                               step="0.01" 
+                                               placeholder="1.00"
+                                               onchange="calculateRowCost(this)">
+                                    </div>
+
+                                    {{-- Unit (readonly) --}}
+                                    <div>
+                                        <label class="block text-sm font-medium text-neutral-300 mb-2">Satuan</label>
+                                        <input type="text" 
+                                               name="ingredients[INDEX][unit]" 
+                                               class="unit-display w-full bg-neutral-600 border border-neutral-500 rounded-lg px-3 py-2 text-neutral-400 cursor-not-allowed"
+                                               readonly 
+                                               placeholder="kg/pcs/ml">
+                                    </div>
+
+                                    {{-- Row Actions --}}
+                                    <div class="flex items-center space-x-2">
+                                        <div class="text-sm text-neutral-300">
+                                            <span class="block text-xs text-neutral-400">Biaya:</span>
+                                            <span class="row-cost font-semibold text-orange-400">Rp 0</span>
+                                        </div>
+                                        <button type="button" 
+                                                onclick="removeIngredientRow(this)"
+                                                class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors">
+                                            <i class="fas fa-trash text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- Optional ingredient checkbox --}}
+                                <div class="mt-3">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" 
+                                               name="ingredients[INDEX][is_optional]" 
+                                               value="1"
+                                               class="text-orange-600 bg-neutral-600 border-neutral-500 rounded focus:ring-orange-500 mr-2">
+                                        <span class="text-sm text-neutral-300">Bahan opsional (tidak wajib)</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -346,7 +489,7 @@
                     <h4 class="text-sm font-semibold text-blue-400 mb-2">💡 Tips</h4>
                     <ul class="text-sm text-blue-300 space-y-1">
                         <li>• Upload foto produk berkualitas tinggi</li>
-                        <li>• Set harga pokok untuk analisis margin</li>
+                        <li>• Set harga pokok dihitung otomatis dari BOM</li>
                         <li>• Gunakan nama Jepang untuk autentisitas</li>
                         <li>• Atur level pedas sesuai resep</li>
                         <li>• Buat deskripsi yang menarik</li>
@@ -546,6 +689,182 @@ document.getElementById('crop-modal').addEventListener('click', function(e) {
 // Prevent modal close when clicking inside modal content
 document.querySelector('#crop-modal .bg-neutral-800').addEventListener('click', function(e) {
     e.stopPropagation();
+});
+
+// BOM Management Functions
+let ingredientRowIndex = 0;
+
+function addIngredientRow() {
+    const container = document.getElementById('ingredients-container');
+    const template = document.getElementById('ingredient-row-template');
+    const newRow = template.cloneNode(true);
+    
+    // Remove template ID and show the row
+    newRow.removeAttribute('id');
+    newRow.classList.remove('hidden');
+    
+    // Update all name attributes with current index
+    const inputs = newRow.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.name) {
+            input.name = input.name.replace('INDEX', ingredientRowIndex);
+        }
+    });
+    
+    container.appendChild(newRow);
+    ingredientRowIndex++;
+    
+    // Update cost calculation
+    updateTotalCost();
+}
+
+function removeIngredientRow(button) {
+    const row = button.closest('.ingredient-row');
+    row.remove();
+    updateTotalCost();
+}
+
+function updateIngredientInfo(selectElement) {
+    const row = selectElement.closest('.ingredient-row');
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    
+    if (selectedOption.value) {
+        const unit = selectedOption.getAttribute('data-unit');
+        const cost = selectedOption.getAttribute('data-cost');
+        const stock = selectedOption.getAttribute('data-stock');
+        
+        // Update unit display
+        const unitInput = row.querySelector('.unit-display');
+        unitInput.value = unit;
+        
+        // Update cost calculation
+        calculateRowCost(selectElement);
+    } else {
+        // Clear unit and cost if no ingredient selected
+        const unitInput = row.querySelector('.unit-display');
+        unitInput.value = '';
+        
+        const rowCost = row.querySelector('.row-cost');
+        rowCost.textContent = 'Rp 0';
+        
+        updateTotalCost();
+    }
+}
+
+function calculateRowCost(element) {
+    const row = element.closest('.ingredient-row');
+    const selectElement = row.querySelector('.ingredient-select');
+    const quantityInput = row.querySelector('.quantity-input');
+    const rowCostDisplay = row.querySelector('.row-cost');
+    
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    
+    if (selectedOption.value && quantityInput.value) {
+        const costPerUnit = parseFloat(selectedOption.getAttribute('data-cost')) || 0;
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const totalRowCost = costPerUnit * quantity;
+        
+        rowCostDisplay.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(totalRowCost);
+    } else {
+        rowCostDisplay.textContent = 'Rp 0';
+    }
+    
+    updateTotalCost();
+}
+
+function updateTotalCost() {
+    let totalCost = 0;
+    
+    // Calculate total from all ingredient rows
+    const rows = document.querySelectorAll('.ingredient-row:not(#ingredient-row-template)');
+    rows.forEach(row => {
+        const selectElement = row.querySelector('.ingredient-select');
+        const quantityInput = row.querySelector('.quantity-input');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        
+        if (selectedOption.value && quantityInput.value) {
+            const costPerUnit = parseFloat(selectedOption.getAttribute('data-cost')) || 0;
+            const quantity = parseFloat(quantityInput.value) || 0;
+            totalCost += (costPerUnit * quantity);
+        }
+    });
+
+    // Calculate other costs
+    let otherCostsTotal = 0;
+    const otherCostCheckboxes = document.querySelectorAll('input[name="other_costs[]"]:checked');
+    const otherCostValues = document.querySelectorAll('input[name="other_cost_values[]"]');
+    
+    otherCostCheckboxes.forEach((checkbox, index) => {
+        const costValue = parseFloat(otherCostValues[index]?.value) || 0;
+        const costType = checkbox.getAttribute('data-type') || 'fixed';
+        
+        if (costType === 'percentage') {
+            otherCostsTotal += totalCost * (costValue / 100);
+        } else {
+            otherCostsTotal += costValue;
+        }
+    });
+
+    // Total cost price = ingredient cost + other costs
+    const finalCostPrice = totalCost + otherCostsTotal;
+    
+    // Update displays
+    document.getElementById('total-cost-display').textContent = new Intl.NumberFormat('id-ID').format(totalCost);
+    document.getElementById('cost-price-display').textContent = new Intl.NumberFormat('id-ID').format(finalCostPrice);
+    
+    // Update the cost price hidden input
+    const costPriceInput = document.querySelector('input[name="cost_price"]');
+    if (costPriceInput) {
+        costPriceInput.value = finalCostPrice;
+    }
+    
+    // Update the cost price display input
+    const costPriceDisplayInput = document.querySelector('input[name="cost_price_display"]');
+    if (costPriceDisplayInput) {
+        costPriceDisplayInput.value = finalCostPrice;
+    }
+
+    // Auto-update selling price if not manually changed
+    autoUpdateSellingPrice(finalCostPrice);
+}
+
+function autoUpdateSellingPrice(costPrice) {
+    const basePriceInput = document.querySelector('input[name="base_price"]');
+    
+    // If base price is empty or equals the previous cost price, auto-update it
+    if (basePriceInput && (basePriceInput.value === '' || parseFloat(basePriceInput.value) === parseFloat(basePriceInput.getAttribute('data-previous-cost')) || parseFloat(basePriceInput.value) === 0)) {
+        basePriceInput.value = Math.ceil(costPrice); // Round up to nearest integer
+        basePriceInput.setAttribute('data-previous-cost', costPrice);
+        basePriceInput.setAttribute('data-auto-updated', 'true');
+    }
+}
+
+// Track manual changes to selling price
+document.addEventListener('DOMContentLoaded', function() {
+    const basePriceInput = document.querySelector('input[name="base_price"]');
+    if (basePriceInput) {
+        basePriceInput.addEventListener('input', function() {
+            // Mark as manually changed
+            this.setAttribute('data-auto-updated', 'false');
+        });
+    }
+
+    // Add event listeners for other costs
+    const otherCostCheckboxes = document.querySelectorAll('input[name="other_costs[]"]');
+    const otherCostValues = document.querySelectorAll('input[name="other_cost_values[]"]');
+    
+    otherCostCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateTotalCost);
+    });
+    
+    otherCostValues.forEach(input => {
+        input.addEventListener('input', updateTotalCost);
+    });
+});
+
+// Add one ingredient row by default when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Don't add default row, let user add when needed
 });
 </script>
 @endsection

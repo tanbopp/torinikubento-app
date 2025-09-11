@@ -183,6 +183,104 @@
                     @endif
                 </div>
             </div>
+
+            {{-- Used in Products --}}
+            @if($ingredient->products->count() > 0)
+            <div class="bg-neutral-800 rounded-lg border border-neutral-700">
+                <div class="p-6 border-b border-neutral-700">
+                    <h3 class="text-lg font-semibold text-white">Digunakan dalam Produk</h3>
+                    <p class="text-sm text-neutral-400 mt-1">{{ $ingredient->products->count() }} produk menggunakan bahan ini</p>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        @foreach($ingredient->products as $product)
+                        <div class="bg-neutral-700 rounded-lg p-4 border border-neutral-600">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3">
+                                        @if($product->image_path)
+                                            <img src="{{ asset('storage/' . $product->image_path) }}" 
+                                                 alt="{{ $product->name }}" 
+                                                 class="w-12 h-12 rounded-lg object-cover">
+                                        @else
+                                            <div class="w-12 h-12 bg-neutral-600 rounded-lg flex items-center justify-center">
+                                                <i class="fas fa-utensils text-neutral-400"></i>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <a href="{{ route('products.show', $product) }}" 
+                                               class="text-white hover:text-orange-400 font-medium transition-colors">
+                                                {{ $product->name }}
+                                            </a>
+                                            @if($product->name_japanese)
+                                                <p class="text-sm text-neutral-400">{{ $product->name_japanese }}</p>
+                                            @endif
+                                            <div class="flex items-center space-x-2 mt-1">
+                                                <span class="text-xs bg-neutral-600 text-neutral-300 px-2 py-1 rounded">
+                                                    {{ $product->category->name ?? 'Tanpa Kategori' }}
+                                                </span>
+                                                @if($product->pivot->is_optional)
+                                                    <span class="text-xs bg-yellow-600/20 text-yellow-400 px-2 py-1 rounded">
+                                                        Opsional
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-neutral-300">
+                                        <span class="font-medium">{{ number_format($product->pivot->quantity, 2) }} {{ $product->pivot->unit ?? $ingredient->unit }}</span>
+                                    </div>
+                                    @if(Auth::user()->role->hasPermission('view_cost_analysis'))
+                                    <div class="text-xs text-neutral-400">
+                                        Biaya: Rp {{ number_format($product->pivot->quantity * $ingredient->cost_per_unit, 0, ',', '.') }}
+                                    </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Total Usage Analysis --}}
+                    @if(Auth::user()->role->hasPermission('view_cost_analysis'))
+                    <div class="mt-6 p-4 bg-blue-600/10 border border-blue-600/20 rounded-lg">
+                        <h4 class="text-sm font-semibold text-blue-400 mb-3">📊 Analisis Penggunaan</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-xs text-blue-300">Total Kebutuhan per Batch:</span>
+                                <div class="text-lg font-bold text-blue-400">
+                                    {{ number_format($ingredient->products->sum('pivot.quantity'), 2) }} {{ $ingredient->unit }}
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-blue-300">Nilai Total per Batch:</span>
+                                <div class="text-lg font-bold text-blue-400">
+                                    Rp {{ number_format($ingredient->products->sum(function($product) use ($ingredient) { 
+                                        return $product->pivot->quantity * $ingredient->cost_per_unit; 
+                                    }), 0, ',', '.') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+            @else
+            <div class="bg-neutral-800 rounded-lg border border-neutral-700">
+                <div class="p-6 border-b border-neutral-700">
+                    <h3 class="text-lg font-semibold text-white">Digunakan dalam Produk</h3>
+                </div>
+                <div class="p-6">
+                    <div class="text-center py-8">
+                        <i class="fas fa-utensils text-neutral-500 text-3xl mb-4"></i>
+                        <p class="text-neutral-400">Bahan ini belum digunakan dalam produk apapun</p>
+                        <p class="text-sm text-neutral-500 mt-2">Tambahkan ke resep produk untuk mulai tracking penggunaan</p>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
 
         {{-- Sidebar --}}

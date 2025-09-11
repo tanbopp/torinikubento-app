@@ -39,41 +39,6 @@
 
 @section('main-content')
 <div class="p-6">
-    {{-- Page Header --}}
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-white mb-2">🍜 Manajemen Produk</h1>
-                <p class="text-neutral-400">Kelola menu dan produk resto Jepang Toriniku Bento</p>
-            </div>
-            <div class="flex items-center space-x-3">
-                @if(Auth::user()->role->hasPermission('view_analytics'))
-                <a href="{{ route('products.menu-engineering') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
-                    <i class="fas fa-chart-pie text-sm"></i>
-                    <span>Menu Engineering</span>
-                </a>
-                @endif
-                @if(Auth::user()->role->hasPermission('edit_products'))
-                <form method="POST" action="{{ route('products.update-cost-prices') }}" class="inline">
-                    @csrf
-                    <button type="submit" 
-                            class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                            onclick="return confirm('Update semua harga pokok produk berdasarkan biaya bahan saat ini?')">
-                        <i class="fas fa-calculator text-sm"></i>
-                        <span>Update Biaya</span>
-                    </button>
-                </form>
-                @endif
-                @if(Auth::user()->role->hasPermission('create_products'))
-                <a href="{{ route('products.create') }}" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
-                    <i class="fas fa-plus text-sm"></i>
-                    <span>Tambah Produk</span>
-                </a>
-                @endif
-            </div>
-        </div>
-    </div>
-
     {{-- Flash Messages --}}
     @if(session('success'))
         <div class="bg-green-600/20 border border-green-600/30 text-green-400 px-4 py-3 rounded-lg mb-6">
@@ -88,6 +53,40 @@
             {{ session('error') }}
         </div>
     @endif
+
+    {{-- Page Header --}}
+    <div class="mb-6">
+        <div class="flex items-end justify-between mt-6">
+            <div>
+                <h1 class="text-3xl font-bold text-white">Daftar Produk</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                @if(Auth::user()->role->hasPermission('view_analytics'))
+                <a href="{{ route('products.menu-engineering') }}" class="hover:bg-neutral-700/50 text-neutral-100 font-medium px-3 py-2 border border-neutral-700 active:bg-neutral-700 rounded-xl transition-colors flex items-center space-x-2 text-sm">
+                    <i class="fas fa-chart-pie text-sm"></i>
+                    <span>Menu Engineering</span>
+                </a>
+                @endif
+                @if(Auth::user()->role->hasPermission('edit_products'))
+                <form method="POST" action="{{ route('products.update-cost-prices') }}" class="inline">
+                    @csrf
+                    <button type="submit" 
+                            class="hover:bg-neutral-700/50 text-neutral-100 font-medium px-3 py-2 border border-neutral-700 active:bg-neutral-700 rounded-xl transition-colors flex items-center space-x-2 text-sm"
+                            onclick="return confirm('Update semua harga pokok produk berdasarkan biaya bahan saat ini?')">
+                        <i class="fas fa-calculator text-sm"></i>
+                        <span>Update Biaya</span>
+                    </button>
+                </form>
+                @endif
+                @if(Auth::user()->role->hasPermission('create_products'))
+                <a href="{{ route('products.create') }}" class="hover:bg-neutral-700/50 text-neutral-100 font-medium px-3 py-2 border border-neutral-700 active:bg-neutral-700 rounded-xl transition-colors flex items-center space-x-2 text-sm">
+                    <i class="fas fa-plus text-sm"></i>
+                    <span>Tambah Produk</span>
+                </a>
+                @endif
+            </div>
+        </div>
+    </div>
 
     {{-- Filters, Sort and Search --}}
     <div class="mb-6">
@@ -223,7 +222,7 @@
                                     <path d="M14.71 21.71L18.71 17.71C18.8032 17.6167 18.8772 17.5061 18.9277 17.3842C18.9781 17.2624 19.0041 17.1318 19.0041 17C19.0041 16.7337 18.8983 16.4783 18.71 16.29C18.5217 16.1017 18.2663 15.9959 18 15.9959C17.7337 15.9959 17.4783 16.1017 17.29 16.29L15 18.59V6.99999C15 6.73477 14.8946 6.48042 14.7071 6.29288C14.5196 6.10534 14.2652 5.99999 14 5.99999C13.7348 5.99999 13.4804 6.10534 13.2929 6.29288C13.1054 6.48042 13 6.73477 13 6.99999L13 21C13.001 21.1974 13.0604 21.3901 13.1707 21.5538C13.2811 21.7176 13.4374 21.845 13.62 21.92C13.8021 21.9966 14.0028 22.0175 14.1968 21.9801C14.3908 21.9427 14.5694 21.8487 14.71 21.71ZM11 17L11 2.99999C10.999 2.80256 10.9396 2.60985 10.8293 2.44613C10.7189 2.2824 10.5626 2.15501 10.38 2.07999C10.1979 2.00341 9.99717 1.98248 9.80318 2.01986C9.60919 2.05723 9.43062 2.15123 9.29 2.28999L5.29 6.28999C5.19627 6.38295 5.12187 6.49355 5.07111 6.61541C5.02034 6.73727 4.9942 6.86798 4.9942 6.99999C4.9942 7.132 5.02034 7.2627 5.07111 7.38456C5.12187 7.50642 5.19627 7.61702 5.29 7.70999C5.38296 7.80372 5.49356 7.87811 5.61542 7.92888C5.73728 7.97965 5.86799 8.00579 6 8.00579C6.13201 8.00579 6.26272 7.97965 6.38457 7.92888C6.50643 7.87811 6.61703 7.80372 6.71 7.70999L9 5.40999L9 17C9 17.2652 9.10535 17.5196 9.29289 17.7071C9.48043 17.8946 9.73478 18 10 18C10.2652 18 10.5196 17.8946 10.7071 17.7071C10.8946 17.5196 11 17.2652 11 17Z" 
                                           fill="currentColor"/>
                                 </svg>
-                                <span>Harga</span>
+                                <span>Harga Jual</span>
                             </a>
                         </th>
                         @if(Auth::user()->role->hasPermission('view_cost_analysis'))
@@ -235,7 +234,7 @@
                                     <path d="M14.71 21.71L18.71 17.71C18.8032 17.6167 18.8772 17.5061 18.9277 17.3842C18.9781 17.2624 19.0041 17.1318 19.0041 17C19.0041 16.7337 18.8983 16.4783 18.71 16.29C18.5217 16.1017 18.2663 15.9959 18 15.9959C17.7337 15.9959 17.4783 16.1017 17.29 16.29L15 18.59V6.99999C15 6.73477 14.8946 6.48042 14.7071 6.29288C14.5196 6.10534 14.2652 5.99999 14 5.99999C13.7348 5.99999 13.4804 6.10534 13.2929 6.29288C13.1054 6.48042 13 6.73477 13 6.99999L13 21C13.001 21.1974 13.0604 21.3901 13.1707 21.5538C13.2811 21.7176 13.4374 21.845 13.62 21.92C13.8021 21.9966 14.0028 22.0175 14.1968 21.9801C14.3908 21.9427 14.5694 21.8487 14.71 21.71ZM11 17L11 2.99999C10.999 2.80256 10.9396 2.60985 10.8293 2.44613C10.7189 2.2824 10.5626 2.15501 10.38 2.07999C10.1979 2.00341 9.99717 1.98248 9.80318 2.01986C9.60919 2.05723 9.43062 2.15123 9.29 2.28999L5.29 6.28999C5.19627 6.38295 5.12187 6.49355 5.07111 6.61541C5.02034 6.73727 4.9942 6.86798 4.9942 6.99999C4.9942 7.132 5.02034 7.2627 5.07111 7.38456C5.12187 7.50642 5.19627 7.61702 5.29 7.70999C5.38296 7.80372 5.49356 7.87811 5.61542 7.92888C5.73728 7.97965 5.86799 8.00579 6 8.00579C6.13201 8.00579 6.26272 7.97965 6.38457 7.92888C6.50643 7.87811 6.61703 7.80372 6.71 7.70999L9 5.40999L9 17C9 17.2652 9.10535 17.5196 9.29289 17.7071C9.48043 17.8946 9.73478 18 10 18C10.2652 18 10.5196 17.8946 10.7071 17.7071C10.8946 17.5196 11 17.2652 11 17Z" 
                                           fill="currentColor"/>
                                 </svg>
-                                <span>Biaya/Margin</span>
+                                <span>Harga Pokok/Margin</span>
                             </a>
                         </th>
                         @endif
@@ -447,7 +446,7 @@
         {{-- Pagination --}}
         <div class="flex items-center justify-between mt-6 px-4">
             <div class="text-sm text-neutral-400">
-                <div>
+                <div class="text-xs">
                     Menampilkan {{ $products->firstItem() ?? 0 }} sampai {{ $products->lastItem() ?? 0 }} 
                     dari {{ $products->total() }} produk
                 </div>
@@ -457,8 +456,8 @@
                         $sortLabels = [
                             'name' => 'Produk',
                             'category_id' => 'Kategori', 
-                            'base_price' => 'Harga',
-                            'cost_price' => 'Biaya',
+                            'base_price' => 'Harga Jual',
+                            'cost_price' => 'Harga Pokok',
                             'is_active' => 'Status',
                             'is_seasonal' => 'Tipe'
                         ];
@@ -477,11 +476,11 @@
             </div>
         </div>
         @else
-        <div class="text-center py-12">
+        <div class="text-center h-[60vh] flex flex-col justify-center items-center">
             <i class="fas fa-utensils text-6xl text-neutral-600 mb-4"></i>
             <p class="text-xl text-neutral-400 mb-4">Belum ada produk</p>
             @if(Auth::user()->role->hasPermission('create_products'))
-            <a href="{{ route('products.create') }}" class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded-lg transition-colors inline-flex items-center space-x-2">
+            <a href="{{ route('products.create') }}" class="bg-orange-600 hover:bg-orange-700 text-white px-3.5 py-2 rounded-xl transition-colors inline-flex items-center space-x-2">
                 <i class="fas fa-plus"></i>
                 <span>Tambah Produk Pertama</span>
             </a>

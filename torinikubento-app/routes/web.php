@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\OtherCostController;
 
 // Redirect root to login
 Route::get('/', function () {
@@ -111,6 +112,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/analytics/menu-engineering', [ProductController::class, 'menuEngineering'])->name('products.menu-engineering');
         Route::get('/recipes/bom', [ProductController::class, 'bomView'])->name('products.bom');
         Route::post('/update-cost-prices', [ProductController::class, 'updateAllCostPrices'])->name('products.update-cost-prices');
+    });
+
+    // Other Costs Management (Biaya Lain)
+    Route::prefix('other-costs')->group(function () {
+        Route::get('/', [OtherCostController::class, 'index'])->name('other-costs.index');
+        Route::get('/create', [OtherCostController::class, 'create'])->name('other-costs.create');
+        Route::post('/', [OtherCostController::class, 'store'])->name('other-costs.store');
+        Route::get('/{otherCost}/edit', [OtherCostController::class, 'edit'])->name('other-costs.edit');
+        Route::put('/{otherCost}', [OtherCostController::class, 'update'])->name('other-costs.update');
+        Route::delete('/{otherCost}', [OtherCostController::class, 'destroy'])->name('other-costs.destroy');
     });
 
     // Category Management

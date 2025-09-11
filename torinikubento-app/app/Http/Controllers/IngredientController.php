@@ -110,6 +110,11 @@ class IngredientController extends Controller
             abort(403, 'Unauthorized access');
         }
 
+        // Load products that use this ingredient with necessary relationships
+        $ingredient->load(['products.category', 'products' => function($query) {
+            $query->with('category');
+        }]);
+
         return view('main.manage-ingredients.show', compact('ingredient'));
     }
 

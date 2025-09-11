@@ -19,33 +19,6 @@ class MenuService
                     'permission' => 'view_dashboard'
                 ],
                 [
-                    'label' => 'Keuangan & Laporan',
-                    'icon' => 'fas fa-chart-line',
-                    'permission' => 'view_financial_reports',
-                    'submenu' => [
-                        [
-                            'label' => 'Laporan Penjualan',
-                            'route' => 'reports.sales',
-                            'permission' => 'view_financial_reports'
-                        ],
-                        [
-                            'label' => 'Laporan Pengeluaran',
-                            'route' => 'reports.expenses',
-                            'permission' => 'view_financial_reports'
-                        ],
-                        [
-                            'label' => 'Laba Rugi',
-                            'route' => 'reports.profit-loss',
-                            'permission' => 'view_financial_reports'
-                        ],
-                        [
-                            'label' => 'Analitik Tren',
-                            'route' => 'reports.analytics',
-                            'permission' => 'view_financial_reports'
-                        ]
-                    ]
-                ],
-                [
                     'label' => 'Manajemen Produk',
                     'icon' => 'fas fa-box-open',
                     'permission' => 'manage_products',
@@ -66,36 +39,14 @@ class MenuService
                             'permission' => 'manage_ingredients'
                         ],
                         [
+                            'label' => 'Biaya Lain',
+                            'route' => 'other-costs.index',
+                            'permission' => 'manage_products'
+                        ],
+                        [
                             'label' => 'Menu Engineering',
                             'route' => 'products.menu-engineering',
                             'permission' => 'view_menu_analytics'
-                        ]
-                    ]
-                ],
-                [
-                    'label' => 'Manajemen',
-                    'icon' => 'fas fa-users-cog',
-                    'permission' => 'manage_users',
-                    'submenu' => [
-                        [
-                            'label' => 'Karyawan',
-                            'route' => 'users.index',
-                            'permission' => 'manage_users'
-                        ],
-                        [
-                            'label' => 'Menu & Harga',
-                            'route' => 'menu.index',
-                            'permission' => 'manage_menu'
-                        ],
-                        [
-                            'label' => 'Promo & Loyalty',
-                            'route' => 'promotions.index',
-                            'permission' => 'manage_promotions'
-                        ],
-                        [
-                            'label' => 'Supplier & Bahan Baku',
-                            'route' => 'inventory.suppliers',
-                            'permission' => 'manage_inventory'
                         ]
                     ]
                 ],
@@ -112,13 +63,6 @@ class MenuService
                     'icon' => 'fas fa-user-tag',
                     'active_pattern' => 'roles*',
                     'permission' => 'manage_roles'
-                ],
-                [
-                    'label' => 'Monitoring Live',
-                    'route' => 'monitoring.live',
-                    'icon' => 'fas fa-eye',
-                    'active_pattern' => 'monitoring.*',
-                    'permission' => 'view_dashboard'
                 ],
                 [
                     'label' => 'Pengaturan',
@@ -188,6 +132,11 @@ class MenuService
                             'label' => 'Bahan Baku',
                             'route' => 'ingredients.index',
                             'permission' => 'manage_ingredients'
+                        ],
+                        [
+                            'label' => 'Biaya Lain',
+                            'route' => 'other-costs.index',
+                            'permission' => 'manage_products'
                         ]
                     ]
                 ],
