@@ -240,6 +240,144 @@
                     </div>
                 </div>
 
+                {{-- Product Variants --}}
+                <div class="bg-neutral-800 rounded-lg border border-neutral-700">
+                    <div class="p-6 border-b border-neutral-700">
+                        <h3 class="text-lg font-semibold text-white">Variasi Produk</h3>
+                        <p class="text-sm text-neutral-400 mt-1">Atur variasi produk seperti ukuran, level pedas, dll</p>
+                    </div>
+                    <div class="p-6">
+                        {{-- Add Variant Button --}}
+                        <div class="mb-4">
+                            <button type="button" 
+                                    onclick="addVariantRow()" 
+                                    class="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                <i class="fas fa-plus mr-2"></i>
+                                Tambah Variasi
+                            </button>
+                        </div>
+
+                        {{-- Variants Container --}}
+                        <div id="variants-container" class="space-y-4">
+                            <!-- Variant rows will be added here dynamically -->
+                        </div>
+
+                        {{-- Variant Row Template (Hidden) --}}
+                        <div id="variant-row-template" class="variant-row p-2 rounded bg-neutral-700/30 hidden">
+                            <div class="grid grid-cols-6 gap-2 items-end">
+                                {{-- Variant Name --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-neutral-300 mb-1">Nama</label>
+                                    <input type="text" 
+                                           name="variants[0][name]" 
+                                           placeholder="Small"
+                                           class="w-full bg-neutral-700 border-0 rounded px-2 py-1 text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                </div>
+
+                                {{-- Variant Type --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-neutral-300 mb-1">Tipe</label>
+                                    <select name="variants[0][type]" 
+                                            onchange="updateVariantType(this)"
+                                            class="w-full bg-neutral-700 border-0 rounded px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                        <option value="">Pilih</option>
+                                        <option value="size">Ukuran</option>
+                                        <option value="spice_level">Level Pedas</option>
+                                        <option value="custom">Kustom</option>
+                                    </select>
+                                </div>
+
+                                {{-- Variant Value --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-neutral-300 mb-1">Nilai</label>
+                                    <input type="text" 
+                                           name="variants[0][value]" 
+                                           placeholder="S/M/L"
+                                           class="w-full bg-neutral-700 border-0 rounded px-2 py-1 text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                </div>
+
+                                {{-- Price Adjustment --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-neutral-300 mb-1">Harga +/-</label>
+                                    <div class="relative">
+                                        <span class="absolute left-1 top-1/2 transform -translate-y-1/2 text-neutral-400 text-xs">Rp</span>
+                                        <input type="number" 
+                                               name="variants[0][price_adjustment]" 
+                                               value="0"
+                                               step="500"
+                                               placeholder="0"
+                                               class="w-full bg-neutral-700 border-0 rounded pl-5 pr-1 py-1 text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                    </div>
+                                </div>
+
+                                {{-- Sort Order & Status --}}
+                                <div>
+                                    <label class="block text-xs font-medium text-neutral-300 mb-1">Urutan</label>
+                                    <div class="flex items-center gap-1">
+                                        <input type="number" 
+                                               name="variants[0][sort_order]" 
+                                               value="0"
+                                               min="0"
+                                               class="flex-1 bg-neutral-700 border-0 rounded px-1 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                        <input type="hidden" name="variants[0][is_active]" value="0">
+                                        <input type="checkbox" 
+                                               name="variants[0][is_active]" 
+                                               value="1" 
+                                               checked
+                                               class="w-3 h-3 text-orange-600 bg-neutral-600 border-0 rounded focus:ring-orange-500 focus:ring-1"
+                                               title="Aktif">
+                                    </div>
+                                </div>
+
+                                {{-- Actions --}}
+                                <div class="flex justify-end items-center">
+                                    <button type="button" 
+                                            onclick="toggleVariantDetails(this)" 
+                                            class="text-neutral-400 hover:text-neutral-300 mr-2 text-xs"
+                                            title="Detail">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <button type="button" 
+                                            onclick="removeVariantRow(this)" 
+                                            class="text-red-400 hover:text-red-300 text-xs"
+                                            title="Hapus">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Additional Fields (Hidden by default) --}}
+                            <div class="variant-details mt-2 hidden">
+                                <div class="grid grid-cols-2 gap-2">
+                                    {{-- Japanese Name --}}
+                                    <div>
+                                        <label class="block text-xs font-medium text-neutral-300 mb-1">Nama Jepang</label>
+                                        <input type="text" 
+                                               name="variants[0][name_japanese]" 
+                                               placeholder="例：小"
+                                               class="w-full bg-neutral-700 border-0 rounded px-2 py-1 text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                    </div>
+
+                                    {{-- Description --}}
+                                    <div>
+                                        <label class="block text-xs font-medium text-neutral-300 mb-1">Deskripsi</label>
+                                        <input type="text" 
+                                               name="variants[0][description]" 
+                                               placeholder="Deskripsi variasi"
+                                               class="w-full bg-neutral-700 border-0 rounded px-2 py-1 text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- No Variants Message --}}
+                        <div id="no-variants-message" class="text-center py-4 text-neutral-400">
+                            <i class="fas fa-layer-group text-lg mb-1"></i>
+                            <p class="text-xs">Belum ada variasi produk.</p>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- BOM (Bill of Materials) --}}
                 <div class="bg-neutral-800 rounded-lg border border-neutral-700">
                     <div class="p-6 border-b border-neutral-700">
@@ -861,6 +999,87 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', updateTotalCost);
     });
 });
+
+// Variant Management Functions
+let variantRowIndex = 0;
+
+function addVariantRow() {
+    const container = document.getElementById('variants-container');
+    const template = document.getElementById('variant-row-template');
+    const newRow = template.cloneNode(true);
+    
+    // Remove template ID and show the row
+    newRow.removeAttribute('id');
+    newRow.classList.remove('hidden');
+    
+    // Update all name attributes with current index
+    const inputs = newRow.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (input.name) {
+            input.name = input.name.replace('[0]', `[${variantRowIndex}]`);
+        }
+    });
+    
+    container.appendChild(newRow);
+    variantRowIndex++;
+    
+    // Hide no variants message
+    const noVariantsMessage = document.getElementById('no-variants-message');
+    if (noVariantsMessage) {
+        noVariantsMessage.style.display = 'none';
+    }
+}
+
+function removeVariantRow(button) {
+    const row = button.closest('.variant-row');
+    row.remove();
+    
+    // Show no variants message if no variants left
+    const container = document.getElementById('variants-container');
+    const noVariantsMessage = document.getElementById('no-variants-message');
+    if (container.children.length === 0 && noVariantsMessage) {
+        noVariantsMessage.style.display = 'block';
+    }
+}
+
+function updateVariantType(selectElement) {
+    const row = selectElement.closest('.variant-row');
+    const valueInput = row.querySelector('input[name*="[value]"]');
+    const type = selectElement.value;
+    
+    // Update placeholder and suggestions based on type
+    switch(type) {
+        case 'size':
+            valueInput.placeholder = 'Contoh: S, M, L atau Small, Medium, Large';
+            break;
+        case 'spice_level':
+            valueInput.placeholder = 'Contoh: 1, 2, 3, 4, 5';
+            break;
+        case 'custom':
+            valueInput.placeholder = 'Nilai kustom';
+            break;
+        default:
+            valueInput.placeholder = 'Masukkan nilai variasi';
+    }
+}
+
+function toggleVariantDetails(button) {
+    const row = button.closest('.variant-row');
+    const detailsSection = row.querySelector('.variant-details');
+    const icon = button.querySelector('i');
+    
+    if (detailsSection.classList.contains('hidden')) {
+        detailsSection.classList.remove('hidden');
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+        button.title = 'Sembunyikan Detail';
+    } else {
+        detailsSection.classList.add('hidden');
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+        button.title = 'Detail';
+    }
+}
 
 // Add one ingredient row by default when page loads
 document.addEventListener('DOMContentLoaded', function() {

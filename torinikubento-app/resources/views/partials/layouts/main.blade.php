@@ -306,6 +306,18 @@
 		[x-cloak] {
 		  display: none !important;
 		}
+
+		/* Hide number input spinners/arrows */
+		input[type=number]::-webkit-outer-spin-button,
+		input[type=number]::-webkit-inner-spin-button {
+			-webkit-appearance: none !important;
+			margin: 0 !important;
+		}
+
+		/* Firefox */
+		input[type=number] {
+			-moz-appearance: textfield !important;
+		}
 	</style>
 
 	{{-- Script Head --}}

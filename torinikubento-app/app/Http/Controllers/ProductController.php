@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Ingredient;
 use App\Models\Addon;
 use App\Models\OtherCost;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -178,7 +179,18 @@ class ProductController extends Controller
             'ingredients.*.unit' => 'required_with:ingredients|string',
             'ingredients.*.is_optional' => 'boolean',
             'addons' => 'nullable|array',
-            'addons.*' => 'exists:addons,id'
+            'addons.*' => 'exists:addons,id',
+            'variants' => 'nullable|array',
+            'variants.*.id' => 'nullable|exists:product_variants,id',
+            'variants.*.name' => 'nullable|string|max:255',
+            'variants.*.name_japanese' => 'nullable|string|max:255',
+            'variants.*.description' => 'nullable|string',
+            'variants.*.type' => 'nullable|string|in:size,spice_level,custom',
+            'variants.*.value' => 'nullable|string|max:255',
+            'variants.*.price_adjustment' => 'nullable|numeric',
+            'variants.*.cost_adjustment' => 'nullable|numeric',
+            'variants.*.sort_order' => 'nullable|integer|min:0',
+            'variants.*.is_active' => 'nullable|boolean'
         ]);
 
         DB::beginTransaction();
@@ -232,6 +244,28 @@ class ProductController extends Controller
                     $customValue = $request->other_cost_values[$index] ?? null;
                     $product->otherCosts()->attach($otherCostId, [
                         'custom_value' => $customValue
+                    ]);
+                }
+            }
+
+            // Create variants
+            if ($request->has('variants')) {
+                // Filter out empty variants
+                $validVariants = array_filter($request->variants, function($variantData) {
+                    return !empty($variantData['name']) && !empty($variantData['type']) && !empty($variantData['value']);
+                });
+                
+                foreach ($validVariants as $variantData) {
+                    $product->variants()->create([
+                        'name' => $variantData['name'],
+                        'name_japanese' => $variantData['name_japanese'] ?? null,
+                        'description' => $variantData['description'] ?? null,
+                        'type' => $variantData['type'],
+                        'value' => $variantData['value'],
+                        'price_adjustment' => $variantData['price_adjustment'] ?? 0,
+                        'cost_adjustment' => $variantData['cost_adjustment'] ?? 0,
+                        'sort_order' => $variantData['sort_order'] ?? 0,
+                        'is_active' => $variantData['is_active'] ?? true
                     ]);
                 }
             }
@@ -334,10 +368,10 @@ class ProductController extends Controller
             'base_price' => 'required|numeric|min:0',
             'promo_price' => 'nullable|numeric|min:0',
             'sort_order' => 'nullable|integer|min:0',
-            'is_active' => 'boolean',
-            'is_available' => 'boolean',
-            'is_seasonal' => 'boolean',
-            'is_limited_edition' => 'boolean',
+            'is_active' => 'nullable|boolean',
+            'is_available' => 'nullable|boolean',
+            'is_seasonal' => 'nullable|boolean',
+            'is_limited_edition' => 'nullable|boolean',
             'daily_limit' => 'nullable|integer|min:0',
             'preparation_time' => 'nullable|integer|min:0',
             'spice_level' => 'nullable|integer|between:0,5',
@@ -352,10 +386,27 @@ class ProductController extends Controller
             'ingredients.*.ingredient_id' => 'required_with:ingredients|exists:ingredients,id',
             'ingredients.*.quantity' => 'required_with:ingredients|numeric|min:0.01',
             'ingredients.*.unit' => 'required_with:ingredients|string',
-            'ingredients.*.is_optional' => 'boolean',
+            'ingredients.*.is_optional' => 'nullable|boolean',
             'addons' => 'nullable|array',
-            'addons.*' => 'exists:addons,id'
+            'addons.*' => 'exists:addons,id',
+            'variants' => 'nullable|array',
+            'variants.*.id' => 'nullable|exists:product_variants,id',
+            'variants.*.name' => 'required_with:variants|string|max:255',
+            'variants.*.name_japanese' => 'nullable|string|max:255',
+            'variants.*.description' => 'nullable|string',
+            'variants.*.type' => 'nullable|string|in:size,spice_level,custom',
+            'variants.*.value' => 'nullable|string|max:255',
+            'variants.*.price_adjustment' => 'nullable|numeric',
+            'variants.*.cost_adjustment' => 'nullable|numeric',
+            'variants.*.sort_order' => 'nullable|integer|min:0',
+            'variants.*.is_active' => 'nullable|boolean'
         ]);
+
+        // Set default values for boolean fields if not provided
+        $validated['is_active'] = $request->boolean('is_active');
+        $validated['is_available'] = $request->boolean('is_available');
+        $validated['is_seasonal'] = $request->boolean('is_seasonal');
+        $validated['is_limited_edition'] = $request->boolean('is_limited_edition');
 
         DB::beginTransaction();
         try {
@@ -437,6 +488,80 @@ class ProductController extends Controller
                 $product->otherCosts()->sync($otherCostSync);
             } else {
                 $product->otherCosts()->detach();
+            }
+
+                        // Sync variants
+            if ($request->has('variants')) {
+                $existingVariantIds = [];
+                
+                // Debug log all variants data
+                \Log::info('Processing variants:', [
+                    'all_variants' => $request->variants,
+                    'variants_count' => count($request->variants)
+                ]);
+                
+                // Filter out empty variants - only require name to be non-empty and not just whitespace
+                $validVariants = array_filter($request->variants, function($variantData) {
+                    return !empty(trim($variantData['name'] ?? ''));
+                });
+                
+                \Log::info('Valid variants after filtering:', [
+                    'valid_count' => count($validVariants),
+                    'valid_data' => $validVariants
+                ]);
+                
+                foreach ($validVariants as $variantData) {
+                    \Log::info('Processing variant:', ['data' => $variantData]);
+                    
+                    if (isset($variantData['id']) && $variantData['id']) {
+                        // Update existing variant
+                        \Log::info('Updating existing variant with ID:', ['id' => $variantData['id']]);
+                        $variant = $product->variants()->find($variantData['id']);
+                        if ($variant) {
+                            $variant->update([
+                                'name' => $variantData['name'],
+                                'name_japanese' => $variantData['name_japanese'] ?? null,
+                                'description' => $variantData['description'] ?? null,
+                                'type' => $variantData['type'] ?? 'custom',
+                                'value' => $variantData['value'] ?? '',
+                                'price_adjustment' => $variantData['price_adjustment'] ?? 0,
+                                'cost_adjustment' => $variantData['cost_adjustment'] ?? 0,
+                                'sort_order' => $variantData['sort_order'] ?? 0,
+                                'is_active' => $variantData['is_active'] ?? true
+                            ]);
+                            $existingVariantIds[] = $variant->id;
+                            \Log::info('Updated existing variant, added ID to preserve:', ['id' => $variant->id]);
+                        }
+                    } else {
+                        // Create new variant
+                        \Log::info('Creating new variant');
+                        $newVariant = $product->variants()->create([
+                            'name' => $variantData['name'],
+                            'name_japanese' => $variantData['name_japanese'] ?? null,
+                            'description' => $variantData['description'] ?? null,
+                            'type' => $variantData['type'] ?? 'custom',
+                            'value' => $variantData['value'] ?? '',
+                            'price_adjustment' => $variantData['price_adjustment'] ?? 0,
+                            'cost_adjustment' => $variantData['cost_adjustment'] ?? 0,
+                            'sort_order' => $variantData['sort_order'] ?? 0,
+                            'is_active' => $variantData['is_active'] ?? true
+                        ]);
+                        $existingVariantIds[] = $newVariant->id;
+                        \Log::info('Created new variant with ID:', ['id' => $newVariant->id]);
+                    }
+                }
+                
+                \Log::info('IDs to preserve:', ['ids' => $existingVariantIds]);
+                \Log::info('Current product variants before cleanup:', ['current_ids' => $product->variants->pluck('id')->toArray()]);
+                
+                // Delete variants that are no longer in the request
+                $variantsToDelete = $product->variants()->whereNotIn('id', $existingVariantIds)->get();
+                \Log::info('Variants to delete:', ['delete_ids' => $variantsToDelete->pluck('id')->toArray()]);
+                
+                $product->variants()->whereNotIn('id', $existingVariantIds)->delete();
+            } else {
+                // No variants in request, delete all existing variants
+                $product->variants()->delete();
             }
 
             // Update cost price and margin - always auto-calculate from BOM and other costs
