@@ -34,6 +34,32 @@
         </div>
     </div>
 
+    <!-- Quick Statistics -->
+    <div class="mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-3">
+                <div class="text-xs text-neutral-400 mb-1">Total Produk</div>
+                <div class="text-xl font-bold text-white">{{ $products->count() }}</div>
+            </div>
+            <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-3">
+                <div class="text-xs text-neutral-400 mb-1">Rata-rata Margin</div>
+                <div class="text-xl font-bold text-blue-400">{{ number_format($products->avg('margin_percentage'), 1) }}%</div>
+            </div>
+            <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-3">
+                <div class="text-xs text-neutral-400 mb-1">Rata-rata Popularitas</div>
+                <div class="text-xl font-bold text-green-400">{{ number_format($products->avg('popularity_score'), 1) }}</div>
+            </div>
+            <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-3">
+                <div class="text-xs text-neutral-400 mb-1">Total Harga Jual</div>
+                <div class="text-lg font-bold text-yellow-400">Rp {{ number_format($products->sum('base_price'), 0, ',', '.') }}</div>
+            </div>
+            <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-3">
+                <div class="text-xs text-neutral-400 mb-1">Total Harga Pokok</div>
+                <div class="text-lg font-bold text-red-400">Rp {{ number_format($products->sum('cost_price'), 0, ',', '.') }}</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-neutral-800 border border-neutral-700 rounded-lg p-4 text-white">

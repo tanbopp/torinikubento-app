@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Ingredient;
-use App\Models\Tax;
 
 class ProductSeeder extends Seeder
 {
@@ -20,12 +19,10 @@ class ProductSeeder extends Seeder
         $sideDishCategory = Category::where('name', 'Side Dish')->first();
         $donburiCategory = Category::where('name', 'Donburi')->first();
         $ramenCategory = Category::where('name', 'Ramen')->first();
-        $tax = Tax::first(); // Ambil tax yang pertama
 
         // Buat produk Chicken Katsu Bento
         $chickenKatsuBento = Product::create([
             'category_id' => $bentoCategory->id,
-            'tax_id' => $tax->id ?? null,
             'name' => 'Chicken Katsu Bento',
             'name_japanese' => 'チキンカツ弁当',
             'description' => 'Crispy breaded chicken cutlet served with steamed rice, pickled vegetables, and miso soup. A classic Japanese comfort food.',
@@ -55,7 +52,6 @@ class ProductSeeder extends Seeder
         // Buat produk Chicken Katsu (side dish)
         $chickenKatsu = Product::create([
             'category_id' => $sideDishCategory->id,
-            'tax_id' => $tax->id ?? null,
             'name' => 'Chicken Katsu',
             'name_japanese' => 'チキンカツ',
             'description' => 'Crispy breaded chicken cutlet served with tonkatsu sauce',
@@ -85,7 +81,6 @@ class ProductSeeder extends Seeder
         // Buat produk Chicken Teriyaki Donburi
         $chickenTeriyakiDonburi = Product::create([
             'category_id' => $donburiCategory->id,
-            'tax_id' => $tax->id ?? null,
             'name' => 'Chicken Teriyaki Donburi',
             'name_japanese' => 'チキン照り焼き丼',
             'description' => 'Grilled chicken glazed with sweet teriyaki sauce over steamed rice',
@@ -115,7 +110,6 @@ class ProductSeeder extends Seeder
         // Buat produk Salmon Teriyaki Bento
         $salmonTeriyakiBento = Product::create([
             'category_id' => $bentoCategory->id,
-            'tax_id' => $tax->id ?? null,
             'name' => 'Salmon Teriyaki Bento',
             'name_japanese' => 'サーモン照り焼き弁当',
             'description' => 'Grilled salmon with teriyaki glaze, served with rice, pickled vegetables, and miso soup',

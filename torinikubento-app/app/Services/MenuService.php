@@ -44,8 +44,8 @@ class MenuService
                             'permission' => 'manage_products'
                         ],
                         [
-                            'label' => 'Menu Engineering',
-                            'route' => 'products.menu-engineering',
+                            'label' => 'Menu Analytics',
+                            'route' => 'products.menu',
                             'permission' => 'view_menu_analytics'
                         ]
                     ]

@@ -98,9 +98,7 @@ class ProductController extends Controller
             'has_promo_prices' => $products->getCollection()->contains(function($product) {
                 return !empty($product->promo_price) && $product->promo_price < $product->base_price;
             }),
-            'has_taxes' => $products->getCollection()->contains(function($product) {
-                return !empty($product->tax) && $product->tax->is_active;
-            }),
+            'has_taxes' => false, // Tax system temporarily disabled
             'has_seasonal_products' => $products->getCollection()->contains(function($product) {
                 return $product->is_seasonal;
             }),
@@ -271,16 +269,24 @@ class ProductController extends Controller
 
         $product->load([
             'category', 
-            'tax',
-            'variants', 
+            'variants' => function($query) {
+                $query->orderBy('sort_order')->orderBy('name');
+            }, 
             'ingredients' => function($query) {
                 $query->orderBy('name');
             }, 
             'addons' => function($query) {
+                $query->where('is_active', true)->orderBy('name');
+            },
+            'otherCosts' => function($query) {
+                $query->where('is_active', true)->orderBy('name');
+            },
+            'bundleItems' => function($query) {
                 $query->orderBy('name');
             },
-            'bundleItems',
-            'bundles'
+            'bundles' => function($query) {
+                $query->where('is_active', true)->orderBy('name');
+            }
         ]);
 
         return view('main.manage-products.show', compact('product'));
@@ -517,16 +523,25 @@ class ProductController extends Controller
         }
 
         $products = Product::active()
-            ->with('category')
-            ->select([
-                'id', 'name', 'category_id', 'base_price', 'cost_price', 
-                'margin_percentage', 'popularity_score'
-            ])
+            ->with(['category', 'ingredients'])
             ->get()
             ->map(function ($product) {
-                // Menu Engineering Classification
-                $isHighProfit = $product->margin_percentage > 30; // Configurable threshold
-                $isPopular = $product->popularity_score > 50; // Configurable threshold
+                // Ensure cost price is up to date
+                $product->updateCostPrice();
+                
+                // Calculate fresh margin percentage
+                if ($product->cost_price > 0) {
+                    $product->margin_percentage = (($product->base_price - $product->cost_price) / $product->base_price) * 100;
+                } else {
+                    $product->margin_percentage = 0;
+                }
+                
+                // Menu Engineering Classification (configurable thresholds)
+                $profitThreshold = 30; // High profit threshold
+                $popularityThreshold = 50; // Popularity threshold
+                
+                $isHighProfit = $product->margin_percentage > $profitThreshold;
+                $isPopular = $product->popularity_score > $popularityThreshold;
                 
                 if ($isPopular && $isHighProfit) {
                     $classification = 'Star';
@@ -548,7 +563,7 @@ class ProductController extends Controller
                 return $product;
             });
 
-        return view('main.manage-products.menu-engineering', compact('products'));
+        return view('main.manage-products.menu', compact('products'));
     }
 
     /**

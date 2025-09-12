@@ -302,6 +302,10 @@
 		body {
 			color-scheme: dark !important;
 		}
+
+		[x-cloak] {
+		  display: none !important;
+		}
 	</style>
 
 	{{-- Script Head --}}

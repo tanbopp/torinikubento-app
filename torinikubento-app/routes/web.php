@@ -109,7 +109,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
         Route::patch('/{product}/toggle-status', [ProductController::class, 'toggleStatus'])->name('products.toggle-status');
         Route::patch('/{product}/toggle-availability', [ProductController::class, 'toggleAvailability'])->name('products.toggle-availability');
-        Route::get('/analytics/menu-engineering', [ProductController::class, 'menuEngineering'])->name('products.menu-engineering');
+        Route::get('/analytics/menu', [ProductController::class, 'menuEngineering'])->name('products.menu');
         Route::get('/recipes/bom', [ProductController::class, 'bomView'])->name('products.bom');
         Route::post('/update-cost-prices', [ProductController::class, 'updateAllCostPrices'])->name('products.update-cost-prices');
     });

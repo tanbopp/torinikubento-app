@@ -62,9 +62,9 @@
             </div>
             <div class="flex items-center space-x-3">
                 @if(Auth::user()->role->hasPermission('view_analytics'))
-                <a href="{{ route('products.menu-engineering') }}" class="hover:bg-neutral-700/50 text-neutral-100 font-medium px-3 py-2 border border-neutral-700 active:bg-neutral-700 rounded-xl transition-colors flex items-center space-x-2 text-sm">
+                <a href="{{ route('products.menu') }}" class="hover:bg-neutral-700/50 text-neutral-100 font-medium px-3 py-2 border border-neutral-700 active:bg-neutral-700 rounded-xl transition-colors flex items-center space-x-2 text-sm">
                     <i class="fas fa-chart-pie text-sm"></i>
-                    <span>Menu Engineering</span>
+                    <span>Menu Analytics</span>
                 </a>
                 @endif
                 @if(Auth::user()->role->hasPermission('edit_products'))

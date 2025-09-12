@@ -154,38 +154,18 @@ class Product extends Model
     }
 
     /**
-     * Get price including tax
+     * Get price including tax (currently no tax system)
      */
     public function getPriceWithTax(): float
     {
-        $basePrice = $this->getEffectivePrice();
-        
-        if ($this->tax && $this->tax->is_active) {
-            if ($this->tax->is_inclusive) {
-                return $basePrice;
-            } else {
-                return $basePrice + $this->tax->calculateTax($basePrice);
-            }
-        }
-        
-        return $basePrice;
+        return $this->getEffectivePrice();
     }
 
     /**
-     * Get tax amount for this product
+     * Get tax amount for this product (currently no tax system)
      */
     public function getTaxAmount(): float
     {
-        $basePrice = $this->getEffectivePrice();
-        
-        if ($this->tax && $this->tax->is_active) {
-            if ($this->tax->is_inclusive) {
-                return $this->tax->calculateTax($this->tax->calculateBaseFromInclusive($basePrice));
-            } else {
-                return $this->tax->calculateTax($basePrice);
-            }
-        }
-        
         return 0;
     }
 

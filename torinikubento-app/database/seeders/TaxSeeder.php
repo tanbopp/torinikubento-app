@@ -43,7 +43,10 @@ class TaxSeeder extends Seeder
         ];
 
         foreach ($taxes as $tax) {
-            Tax::create($tax);
+            Tax::updateOrCreate(
+                ['code' => $tax['code']], // Kondisi pencarian
+                $tax // Data yang akan diupdate atau dibuat
+            );
         }
     }
 }
